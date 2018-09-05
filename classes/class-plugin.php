@@ -83,6 +83,12 @@ class Plugin {
 		       isset( $_SERVER ) && isset( $_SERVER['SCRIPT_FILENAME'] ) && pathinfo( $_SERVER['SCRIPT_FILENAME'], PATHINFO_FILENAME ) == $context;
 	}
 
+	public static function is_debugging() {
+		static $kntnt_debug;
+		if ( ! $kntnt_debug ) $kntnt_debug = strtr( strtoupper( self::$ns ), '-', '_' );
+		return @constant( 'WP_DEBUG' ) && @constant( $kntnt_debug );
+	}
+
 	// Returns an instance of the class with the provided name.
 	static public function instance( $class_name ) {
 		$n = strtr( strtolower( $class_name ), '_', '-' );
@@ -107,11 +113,22 @@ class Plugin {
 		return isset( $opt[ $key ] ) ? $opt[ $key ] : $default;
 	}
 
-	public static final function str_join( $lhs, $rhs, $separator = '/' ) {
-		if ( $lhs && $rhs ) {
-			$lhs = rtrim( $lhs, $separator ) . $separator . ltrim( $rhs, $separator );
+	public static final function log( $message = '', ...$args ) {
+		if ( self::is_debugging() ) {
+			$caller = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 3 );
+			$caller = $caller[1]['class'] . '->' . $caller[1]['function'] . '()';
+			foreach ( $args as &$arg ) {
+				if ( is_array( $arg ) || is_object( $arg ) ) {
+					$arg = print_r( $arg, true );
+				}
+			}
+			$message = sprintf( $message, ...$args );
+			error_log( "$caller: $message" );
 		}
-		return $lhs;
+	}
+
+	public static function str_join( $lhs, $rhs, $sep = '/' ) {
+		return rtrim( $lhs, $sep ) . $sep . ltrim( $rhs, $sep );
 	}
 
 }
