@@ -27,8 +27,8 @@ class Settings extends Abstract_Settings {
 
 		$fields['layout_post_id'] = [
 			'type' => 'select',
-			'label' => __( 'Beaver Builder layout', 'kntnt-bb-personalized-posts' ),
-			'description' => __( 'The post ID of a Beaver Builder layout with "Personalized posts" as data source.', 'kntnt-bb-personalized-posts' ),
+			'label' => __( 'Beaver Builder template', 'kntnt-bb-personalized-posts' ),
+			'description' => __( 'The Beaver Builder template with "Personalized posts" as data source.', 'kntnt-bb-personalized-posts' ),
 			'options' => wp_list_pluck( get_posts( [ 'post_type' => 'fl-builder-template', 'nopaging' => true ] ), 'post_title', 'ID' ),
 		];
 
@@ -58,13 +58,34 @@ class Settings extends Abstract_Settings {
 			'type' => 'checkbox group',
 			'label' => __( 'Posts type', 'kntnt-bb-personalized-posts' ),
 			'description' => __( 'Select one or more post types to limit the shown posts to these post types.', 'kntnt-bb-personalized-posts' ),
-			'options' => get_post_types( [ 'public' => true ] ),
-			'filter-before' => function ( $post_types ) {
-				return 'any' == $post_types ? [] : $post_types;
-			},
+			'options' => wp_list_pluck( get_post_types( [ 'public' => true ], 'objects' ), 'name' ),
 			'filter-after' => function ( $post_types ) {
 				return $post_types ? $post_types : 'any';
 			},
+			'filter-before' => function ( $post_types ) {
+				return 'any' == $post_types ? [] : $post_types;
+			},
+		];
+
+		$fields['sort_order'] = [
+			'type' => 'select',
+			'label' => __( 'Sort order', 'kntnt-bb-personalized-posts' ),
+			'description' => __( 'Sort order among osts with equal relevance.', 'kntnt-bb-personalized-posts' ),
+			'options' => [
+				'id-asc' => __( 'Post id ascending', 'kntnt-bb-personalized-posts' ),
+				'id-desc' => __( 'Post id descending', 'kntnt-bb-personalized-posts' ),
+				'created-asc' => __( 'Created date ascending', 'kntnt-bb-personalized-posts' ),
+				'created-desc' => __( 'Created date descending', 'kntnt-bb-personalized-posts' ),
+				'modified-asc' => __( 'Modified ate ascending', 'kntnt-bb-personalized-posts' ),
+				'modified-desc' => __( 'Modified date descending', 'kntnt-bb-personalized-posts' ),
+				'comments-asc' => __( 'Comment count ascending', 'kntnt-bb-personalized-posts' ),
+				'comments-desc' => __( 'Comment count descending', 'kntnt-bb-personalized-posts' ),
+				'title-asc' => __( 'Title Ascending', 'kntnt-bb-personalized-posts' ),
+				'title-desc' => __( 'Title descending', 'kntnt-bb-personalized-posts' ),
+				'author-asc' => __( 'Author ascending', 'kntnt-bb-personalized-posts' ),
+				'author-desc' => __( 'Author descending', 'kntnt-bb-personalized-posts' ),
+				'random' => __( 'Random', 'kntnt-bb-personalized-posts' ),
+			],
 		];
 
 		return $fields;

@@ -16,11 +16,12 @@
 							<?php case 'text group': ?>
                                 <fieldset id="<?php echo $id ?>">
 									<?php foreach ( $field['options'] as $slug => $item ): ?>
-                                        <input type="text" name="<?php echo "{$ns}[$id][$slug]" ?>" value="<?php echo $values[ $id ][ $slug ]; ?>" size="<?php echo isset( $field['size'] ) ? $field['size'] : 20; ?>"> <?php echo $item; ?><br>
+                                        <input type="text" name="<?php echo "{$ns}[$id][$slug]" ?>" value="<?php echo isset( $values[ $id ][ $slug ] ) ? $values[ $id ][ $slug ] : ''; ?>" size="<?php echo isset( $field['size'] ) ? $field['size'] : 20; ?>"> <?php echo $item; ?><br>
                                         <br>
 									<?php endforeach; ?>
                                 </fieldset>
 								<?php break; ?>
+							<?php case 'integer': ?>
 							<?php case 'number': ?>
                                 <input id="<?php echo $id ?>" type="number" name="<?php echo "{$ns}[$id]" ?>" value="<?php echo $values[ $id ]; ?>" <?php if ( isset( $field['min'] ) ): echo 'min="' . $field['min'] . '"'; endif; ?> <?php if ( isset( $field['max'] ) ): echo 'max="' . $field['max'] . '"'; endif; ?> <?php if ( isset( $field['step'] ) ): echo 'step="' . $field['step'] . '"'; endif; ?>>
                                 <br>
@@ -43,7 +44,7 @@
 							<?php case 'checkbox group': ?>
                                 <fieldset id="<?php echo $id ?>">
 									<?php foreach ( $field['options'] as $value => $item ): ?>
-                                        <input type="checkbox" name="<?php echo "{$ns}[$id][]" ?>" value="<?php echo $value; ?>" <?php echo in_array( $value, $values[ $id ] ) ? 'checked' : '' ?>> <?php echo $item; ?><br>
+                                        <input type="checkbox" name="<?php echo "{$ns}[$id][$value]" ?>" value="<?php echo $value; ?>" <?php echo in_array( $value, $values[ $id ] ) ? 'checked' : '' ?>> <?php echo $item; ?><br>
                                         <br>
 									<?php endforeach; ?>
                                 </fieldset>
@@ -57,7 +58,7 @@
                                 <br>
 								<?php break; ?>
 							<?php case 'select multiple': ?>
-                                <select id="<?php echo $id ?>" name="<?php echo "{$ns}[$id][]" ?>" multiple>
+                                <select multiple id="<?php echo $id ?>" name="<?php echo "{$ns}[$id][]" ?>">
 									<?php foreach ( $field['options'] as $value => $item ): ?>
                                         <option value="<?php echo $value; ?>" <?php echo isset( $values[ $id ] ) && in_array( $value, $values[ $id ] ) ? 'selected' : ''; ?>><?php echo $item; ?></option>
 									<?php endforeach; ?>
