@@ -10,7 +10,7 @@ TODO
 
 Install the plugin [the usually way](https://codex.wordpress.org/Managing_Plugins#Installing_Plugins).
 
-You must also install [Kntnt's Content Intelligence Platform plugin](https://github.com/Kntnt/kntnt-personalized-content).
+You must also install [Kntnt's Content Intelligence Platform plugin](https://github.com/Kntnt/kntnt-cip).
 
 ## Frequently Asked Questions
 
