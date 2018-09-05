@@ -27,7 +27,7 @@
                                 <br>
 								<?php break; ?>
 							<?php case 'url': ?>
-                                <input id="<?php echo $id ?>" type="url" name="<?php echo "{$ns}[$id]" ?>" value="<?php echo $values[ $id ]; ?>" pattern="<?php echo isset( $field['pattern'] ) ? $field['pattern'] : 'https?//.*'; ?>" size="<?php echo isset( $field['size'] ) ? $field['size'] : 20; ?>>
+                                <input id="<?php echo $id ?>" type="url" name="<?php echo "{$ns}[$id]" ?>" value="<?php echo $values[ $id ]; ?>" pattern="<?php echo isset( $field['pattern'] ) ? $field['pattern'] : 'https?://.+'; ?>" size="<?php echo isset( $field['size'] ) ? $field['size'] : 20; ?>>
                                 <br>
 								<?php break; ?>
 							<?php case 'email': ?>
