@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Kntnt's Personalized Content for Beaver Builder\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-08-31 16:41+0000\n"
+"POT-Creation-Date: 2018-09-05 20:02+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: \n"
@@ -24,13 +24,11 @@ msgid "Kntnt's Personalized Posts for Beaver Builder"
 msgstr ""
 
 #: classes/class-settings.php:30
-msgid "Beaver Builder layout"
+msgid "Beaver Builder template"
 msgstr ""
 
 #: classes/class-settings.php:31
-msgid ""
-"The post ID of a Beaver Builder layout with \"Personalized posts\" as data "
-"source."
+msgid "The Beaver Builder template with \"Personalized posts\" as data source."
 msgstr ""
 
 #: classes/class-settings.php:37
@@ -63,6 +61,66 @@ msgid ""
 "Select one or more post types to limit the shown posts to these post types."
 msgstr ""
 
+#: classes/class-settings.php:72
+msgid "Sort order"
+msgstr ""
+
+#: classes/class-settings.php:73
+msgid "Sort order among osts with equal relevance."
+msgstr ""
+
+#: classes/class-settings.php:75
+msgid "Post id ascending"
+msgstr ""
+
+#: classes/class-settings.php:76
+msgid "Post id descending"
+msgstr ""
+
+#: classes/class-settings.php:77
+msgid "Created date ascending"
+msgstr ""
+
+#: classes/class-settings.php:78
+msgid "Created date descending"
+msgstr ""
+
+#: classes/class-settings.php:79
+msgid "Modified ate ascending"
+msgstr ""
+
+#: classes/class-settings.php:80
+msgid "Modified date descending"
+msgstr ""
+
+#: classes/class-settings.php:81
+msgid "Comment count ascending"
+msgstr ""
+
+#: classes/class-settings.php:82
+msgid "Comment count descending"
+msgstr ""
+
+#: classes/class-settings.php:83
+msgid "Title Ascending"
+msgstr ""
+
+#: classes/class-settings.php:84
+msgid "Title descending"
+msgstr ""
+
+#: classes/class-settings.php:85
+msgid "Author ascending"
+msgstr ""
+
+#: classes/class-settings.php:86
+msgid "Author descending"
+msgstr ""
+
+#: classes/class-settings.php:87
+msgid "Random"
+msgstr ""
+
 #: classes/class-abstract-settings.php:32
 msgid "Settings"
 msgstr ""
@@ -75,16 +133,16 @@ msgstr ""
 msgid "Nonce failed."
 msgstr ""
 
-#: classes/class-abstract-settings.php:139
+#: classes/class-abstract-settings.php:271
 #, php-format
 msgid "<strong>ERROR:</strong> Invalid data in the field <em>%s</em>."
 msgstr ""
 
-#: classes/class-abstract-settings.php:142
+#: classes/class-abstract-settings.php:274
 msgid "<strong>ERROR:</strong> Please review the settings and try again."
 msgstr ""
 
-#: classes/class-abstract-settings.php:168
+#: classes/class-abstract-settings.php:280
 msgid "Successfully saved settings."
 msgstr ""
 
