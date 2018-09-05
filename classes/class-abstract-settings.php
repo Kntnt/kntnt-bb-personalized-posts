@@ -276,13 +276,8 @@ abstract class Abstract_Settings {
 		$this->notify_admin( $message, 'error' );
 	}
 
-	private function notify_success( $field ) {
-		if ( isset( $field['validate-success-message'] ) ) {
-			$message = $field['validate-success-message'];
-		}
-		else {
-			$message = __( 'Successfully saved settings.', 'kntnt-bb-personalized-posts' );
-		}
+	private function notify_success() {
+		$message = __( 'Successfully saved settings.', 'kntnt-bb-personalized-posts' );
 		$this->notify_admin( $message, 'success' );
 	}
 
