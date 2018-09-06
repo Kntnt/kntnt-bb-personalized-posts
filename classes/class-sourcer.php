@@ -60,9 +60,10 @@ class Sourcer {
 
 	public function loop_query_args( $args ) {
 
-		Plugin::log();
-
 		if ( 'kntnt_bb_personalized_posts' == $args['settings']->data_source ) {
+
+			Plugin::log();
+
 			if ( $post_ids = $this->recommended_post_ids() ) {
 				$args['post__in'] = $post_ids;
 				$args['post_type'] = 'any';
@@ -78,8 +79,11 @@ class Sourcer {
 			else {
 				return [];
 			}
+
 		}
+
 		return $args;
+
 	}
 
 	/**
