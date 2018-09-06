@@ -77,7 +77,7 @@ class Plugin {
 		return 'any' == $context ||
 		       'public' == $context && ( ! defined( 'WP_ADMIN' ) || ! WP_ADMIN ) ||
 		       'ajax' == $context && defined( 'DOING_AJAX' ) && DOING_AJAX ||
-		       'admin' == $context && defined( 'WP_ADMIN' ) && WP_ADMIN ||
+		       'admin' == $context && defined( 'WP_ADMIN' ) && WP_ADMIN && ( ! defined( 'DOING_AJAX' ) || ! DOING_AJAX ) ||
 		       'cron' == $context && defined( 'DOING_CRON' ) && DOING_CRON ||
 		       'cli' == $context && defined( 'WP_CLI' ) && WP_CLI ||
 		       isset( $_SERVER ) && isset( $_SERVER['SCRIPT_FILENAME'] ) && pathinfo( $_SERVER['SCRIPT_FILENAME'], PATHINFO_FILENAME ) == $context;
