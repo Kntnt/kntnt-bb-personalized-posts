@@ -106,15 +106,4 @@ class Settings extends Abstract_Settings {
 
 	}
 
-	// Returns an array where keys are taxonomies machine name and values are
-	// corresponding name in clear text.
-	private function get_taxonomies() {
-
-		global $wp_taxonomies;
-		foreach ( $wp_taxonomies as $taxonomy ) {
-			$taxonomies[ $taxonomy->name ] = "$taxonomy->label ($taxonomy->name)";
-		}
-		return $taxonomies;
-	}
-
 }
