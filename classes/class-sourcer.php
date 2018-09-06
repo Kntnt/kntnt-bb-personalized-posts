@@ -6,16 +6,26 @@ class Sourcer {
 
 	private $profile;
 
+	/**
+	 * Delete cached list of sorted and ranked posts.
+	 */
+	static public function purge_cache() {
+		Plugin::log();
+		delete_transient( 'kntnt-bb-personalized-posts' );
+	}
+
 	public function run() {
-		if ( Plugin::option( 'selector' ) && Plugin::option( 'layout_post_id' ) ) {
+		if ( Plugin::is_context( 'admin' ) ) {
+			add_action( 'save_post', [ 'Kntnt\BB_Personalized_Posts\Sourcer', 'purge_cache' ] );
+			add_action( 'deleted_post', [ 'Kntnt\BB_Personalized_Posts\Sourcer', 'purge_cache' ] );
+			add_action( 'created_term', [ 'Kntnt\BB_Personalized_Posts\Sourcer', 'purge_cache' ] );
+			add_action( 'edit_term', [ 'Kntnt\BB_Personalized_Posts\Sourcer', 'purge_cache' ] );
+			add_action( 'update_option_' . Plugin::ns(), [ 'Kntnt\BB_Personalized_Posts\Sourcer', 'purge_cache' ] );
+		}
+		else if ( Plugin::option( 'selector' ) && Plugin::option( 'layout_post_id' ) ) {
 			add_filter( 'kntnt_personalized_content_selector', [ $this, 'get_selector' ] );
 			add_filter( 'kntnt_personalized_content_output', [ $this, 'get_bb_posts_output' ], 10, 3 );
 			add_filter( 'fl_builder_loop_query_args', [ $this, 'loop_query_args' ] );
-			add_action( 'save_post', [ $this, 'purge_cache' ] );
-			add_action( 'deleted_post', [ $this, 'purge_cache' ] );
-			add_action( 'created_term', [ $this, 'purge_cache' ] );
-			add_action( 'edit_term', [ $this, 'purge_cache' ] );
-			add_action( 'delete_term', [ $this, 'purge_cache' ] );
 		}
 	}
 
@@ -70,11 +80,6 @@ class Sourcer {
 			}
 		}
 		return $args;
-	}
-
-	public function purge_cache() {
-		Plugin::log();
-		delete_transient( 'kntnt-bb-personalized-posts' );
 	}
 
 	/**
@@ -146,20 +151,15 @@ class Sourcer {
 		}
 
 		// In post types clause
-		$options[] = array_keys( Plugin::option( 'post_types', [] ) );
+		list( $options[], $placeholders[] ) = $this->db_option( array_keys( Plugin::option( 'post_types', [] ) ), '%s' );
 
 		// In taxonomies clause
-		$options[] = array_intersect( array_keys( Plugin::option( 'taxonomies', [] ) ), array_keys( $this->profile ) );
+		list( $options[], $placeholders[] ) = $this->db_option( array_intersect( array_keys( Plugin::option( 'taxonomies', [] ) ), array_keys( $this->profile ) ), '%s' );
 
 		// In terms clause
-		$options[] = array_reduce( $this->profile, 'array_merge', [] );
+		list( $options[], $placeholders[] ) = $this->db_option( array_reduce( $this->profile, 'array_merge', [] ), '%s' );
 
-		// Placeholders
-		foreach ( $options as $option ) {
-			$placeholders[] = substr( str_repeat( "%s,", count( $option ) ), 0, - 1 );
-		}
-
-		// Sort order
+		// Sort order clause
 		if ( 'as-is' != Plugin::option( 'sort_order' ) ) {
 			$sort_order = ( [
 				'id-asc' => 'ORDER BY p.ID ASC',
@@ -181,16 +181,25 @@ class Sourcer {
 			$sort_order = '';
 		}
 
+		// Limit clause
+		if ( Plugin::option( 'db_limit' ) ) {
+			$limit = 'LIMIT ' . Plugin::option( 'db_limit' );
+		}
+		else {
+			$limit = '';
+		}
+
 		$query = <<<SQL
 			SELECT p.id AS post_id, tt.taxonomy, t.slug as term FROM $wpdb->posts AS p
 			LEFT JOIN $wpdb->term_relationships AS tr ON (p.ID = tr.object_id)
 			LEFT JOIN $wpdb->term_taxonomy AS tt ON (tr.term_taxonomy_id = tt.term_taxonomy_id)
 			LEFT JOIN $wpdb->terms AS t ON ( tt.term_id = t.term_id)
-			WHERE p.post_type IN ( {$placeholders[0]} )
-			AND p.post_status = 'publish'
+			WHERE p.post_status = 'publish'
+			AND p.post_type IN ( {$placeholders[0]} )
 			AND tt.taxonomy IN ( {$placeholders[1]} )
 			AND t.slug IN ( {$placeholders[2]} )
-			$sort_order;
+			$sort_order
+			$limit;
 SQL;
 
 		$query = $wpdb->prepare( $query, array_reduce( $options, 'array_merge', [] ) );
@@ -255,6 +264,16 @@ SQL;
 
 		return $result;
 
+	}
+
+	private function db_option( $option, $format ) {
+		if ( is_array( $option ) ) {
+			$format = substr( str_repeat( "$format,", count( $option ) ), 0, - 1 );
+		}
+		else {
+			$option = [ $option ];
+		}
+		return [ $option, $format ];
 	}
 
 }

@@ -38,6 +38,7 @@ new Plugin( [
 	'admin' => [
 		'init' => [
 			'Settings',
+			'Sourcer',
 		],
 	],
 ] );

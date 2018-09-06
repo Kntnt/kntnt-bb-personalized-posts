@@ -115,6 +115,17 @@ abstract class Abstract_Settings {
 	}
 
 	/**
+	 * Validates that $value is not empty.
+	 *
+	 * @param $value The value to validate.
+	 *
+	 * @return bool True if and only if $value in non-empty.
+	 */
+	protected function validate_required( $value, $field ) {
+		return ! empty( $value );
+	}
+
+	/**
 	 * Validates that $integer is either empty or an integer.
 	 *
 	 * @param $integer The value to validate.
@@ -122,67 +133,75 @@ abstract class Abstract_Settings {
 	 * @return bool True if and only if $integer is either an empty scalar (e.g.
 	 * an empty string but not an empty array) or an integer.
 	 */
-	protected function validate_integer( $integer ) {
-		return empty( $integer ) || ! is_numeric( $integer ) && ( ( (int) $integer ) === $integer ); // is_int don't handle strings
+	protected function validate_integer( $integer, $field ) {
+		return empty( $integer ) ||
+		       ( false !== filter_var( $integer, FILTER_VALIDATE_INT ) ) &&
+		       ( ! isset( $field['min'] ) || intval( $field['min'] ) <= intval( $integer ) ) &&
+		       ( ! isset( $field['max'] ) || intval( $field['max'] ) <= intval( $integer ) ) &&
+		       ( ! isset( $field['step'] ) || ! ( ( intval( $integer ) - intval( isset( $field['min'] ) ? $field['min'] : 0 ) ) % intval( $field['step'] ) ) );
 	}
 
 	/**
 	 * Validates that $number is either empty or a number.
 	 *
 	 * @param $number The value to validate.
+	 * @param $field  The field description.
 	 *
 	 * @return bool True if and only if $number is either an empty scalar (e.g.
 	 * an empty string but not an empty array) or an integer or floating point
 	 * number.
 	 */
-	protected function validate_number( $number ) {
-		return empty( $number ) || is_numeric( $number );
+	protected function validate_number( $number, $field ) {
+		return empty( $number ) ||
+		       is_numeric( $number ) &&
+		       ( ! isset( $field['min'] ) || floatval( $field['min'] ) <= floatval( $number ) ) &&
+		       ( ! isset( $field['max'] ) || floatval( $field['max'] ) <= floatval( $number ) );
 	}
 
 	/**
 	 * Validates that $val is an URL.
 	 *
-	 * @param $url The value to validate.
+	 * @param $url    The value to validate.
+	 * @param $field  The field description.
 	 *
 	 * @return bool True if and only if $url is a proper formatted URL.
 	 */
-	protected function validate_url( $url ) {
+	protected function validate_url( $url, $field ) {
 		return false !== filter_var( $url, FILTER_VALIDATE_URL );
 	}
 
 	/**
 	 * Validates that $email is an email address.
 	 *
-	 * @param $email The value to validate.
+	 * @param $email  The value to validate.
+	 * @param $field  The field description.
 	 *
 	 * @return bool True if and only if $email is a proper formatted email
 	 * address.
 	 */
-	protected function validate_email( $email ) {
+	protected function validate_email( $email, $field ) {
 		return false !== filter_var( $email, FILTER_VALIDATE_EMAIL );
 	}
 
 	/**
 	 * Validates that the value(s) in $values match the options in $options.
 	 *
-	 * @param       $val        Either a value or an array of values to
-	 *                          validate.
-	 * @param array $options    An associative array where the keys are allowed
-	 *                          values of $val.
+	 * @param       $val    Either a value or an array of values to validate.
+	 * @param       $field  The field description.
 	 *
 	 * @return bool True if and only if a single value in $value match an option
 	 *              in $option or if all values in an array $values of values
 	 *              match an option in $option.
 	 */
-	protected function validate_options( $val, $options ) {
+	protected function validate_options( $val, $field ) {
 		if ( ! is_array( $val ) ) {
-			if ( ! empty( $val ) && ! array_key_exists( $val, $options ) ) {
+			if ( ! empty( $val ) && ! array_key_exists( $val, $field['options'] ) ) {
 				return false;
 			}
 		}
 		else {
 			foreach ( $val as $key => $value ) {
-				if ( ! array_key_exists( $key, $options ) ) {
+				if ( ! array_key_exists( $key, $field['options'] ) ) {
 					return false;
 				}
 			}
@@ -212,25 +231,38 @@ abstract class Abstract_Settings {
 				$opt[ $id ] = array_combine( $opt[ $id ], $opt[ $id ] );
 			}
 
+			// Validate that required fields have value for the extremely
+			// unlikely case that someone else's code tries to fake a settings
+			// form post.
+			if ( isset( $field['required'] ) ) {
+				if ( ! $this->validate_required( $opt[ $id ], $field ) ) {
+					$validates = false;
+					$this->notify_error( $field );
+				}
+			}
+
+			// Validate fields with pre-defined options for the extremely
+			// unlikely case that someone else's code tries to fake a settings
+			// form post.
+			if ( isset( $field['options'] ) ) {
+				if ( ! $this->validate_options( $opt[ $id ], $field ) ) {
+					$validates = false;
+					$this->notify_error( $field );
+				}
+			}
+
 			// Validate fields for which there exists pre-defined baseline
 			// validators. More sophisticated validation can be defined in
 			// the field settings.
 			$validator = 'validate_' . $field['type'];
 			if ( method_exists( $this, $validator ) ) {
-				if ( ! $this->$validator( $opt[ $id ] ) ) {
+				if ( ! $this->$validator( $opt[ $id ], $field ) ) {
 					$validates = false;
 					$this->notify_error( $field );
 				}
 			}
 
-			// Validate fields with pre-defined options.
-			if ( isset( $field['options'] ) ) {
-				if ( ! $this->validate_options( $opt[ $id ], $field['options'] ) ) {
-					$validates = false;
-					$this->notify_error( $field );
-				}
-			}
-
+			// Run provided validators.
 			if ( isset( $field['validate'] ) ) {
 
 				$validator = $field['validate'];

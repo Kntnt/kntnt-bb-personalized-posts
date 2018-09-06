@@ -30,12 +30,14 @@ class Settings extends Abstract_Settings {
 			'label' => __( 'Beaver Builder template', 'kntnt-bb-personalized-posts' ),
 			'description' => __( 'The Beaver Builder template with "Personalized posts" as data source.', 'kntnt-bb-personalized-posts' ),
 			'options' => wp_list_pluck( get_posts( [ 'post_type' => 'fl-builder-template', 'nopaging' => true ] ), 'post_title', 'ID' ),
+			'required' => true,
 		];
 
 		$fields['selector'] = [
 			'type' => 'text',
 			'label' => __( 'jQuery selector', 'kntnt-bb-personalized-posts' ),
 			'description' => __( 'jQuery selector targeting the div element(s) which HTML should be replaced with the Beaver Builder layout above.', 'kntnt-bb-personalized-posts' ),
+			'required' => true,
 			'size' => 50,
 		];
 
@@ -73,7 +75,7 @@ class Settings extends Abstract_Settings {
 			'label' => __( 'Sort order', 'kntnt-bb-personalized-posts' ),
 			'description' => __( 'Sort order among posts with equal relevance.', 'kntnt-bb-personalized-posts' ),
 			'options' => [
-				'as-is' => __('No particular order (fastest)','kntnt-bb-personalized-posts' ),
+				'as-is' => __( 'No particular order (fastest)', 'kntnt-bb-personalized-posts' ),
 				'id-asc' => __( 'Post id ascending', 'kntnt-bb-personalized-posts' ),
 				'id-desc' => __( 'Post id descending', 'kntnt-bb-personalized-posts' ),
 				'created-asc' => __( 'Created date ascending', 'kntnt-bb-personalized-posts' ),
@@ -89,6 +91,15 @@ class Settings extends Abstract_Settings {
 				'random' => __( 'Random', 'kntnt-bb-personalized-posts' ),
 			],
 			'default' => 'as-is',
+		];
+
+		$fields['db_limit'] = [
+			'type' => 'integer',
+			'label' => __( 'Database limit', 'kntnt-bb-personalized-posts' ),
+			'description' => __( sprintf( 'Enter an integer to limit the maximum numbers of rows that will be fetched from the database (i.e. the number of SQL\'s LIMIT clause). If set, you must consider that typically there are several times more rows than posts, and the limit is applied after sorting the rows but before ranking posts. Most sites don\'t have that many posts or that heavy traffic that requires a limit. So leave it empty if you can. If WP_DEBUG is false (%s), the sorted and ranked list of posts is cached.', defined( 'WP_DEBUG' ) && WP_DEBUG ? 'which it\'s NOT!' : 'which it is' ), 'kntnt-bb-personalized-posts' ),
+			'default' => '',
+			'min' => 1,
+			'size' => 50,
 		];
 
 		return $fields;
