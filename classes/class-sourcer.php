@@ -90,34 +90,43 @@ class Sourcer {
 
 		Plugin::log();
 
-		$weights = Plugin::option( 'taxonomies', [] );
-
 		$scores = [];
 		$posts = $this->get_posts();
 		foreach ( $posts as $post_id => $taxonomies ) {
 			$scores[ $post_id ] = 0;
 			foreach ( $taxonomies as $taxonomy => $terms ) {
-				if ( isset( $this->profile[ $taxonomy ] ) && isset( $weights[ $taxonomy ] ) ) {
-					$profile_match_count = count( array_intersect( $terms, $this->profile[ $taxonomy ] ) );
-					$profile_match_score = $weights[ $taxonomy ] / count( $this->profile[ $taxonomy ] );
-					$scores[ $post_id ] += $profile_match_count * $profile_match_score;
+				if ( isset( $this->profile[ $taxonomy ] ) ) {
+					$scores[ $post_id ] += $this->profile_match_count( $taxonomy, $terms ) * $this->profile_match_score( $taxonomy );
 				}
 
 			}
 		}
 
-		arsort( $scores );
+		if ( in_array( Plugin::option( 'sort_order' ), [ 'as-is', 'random' ] ) ) {
+			arsort( $scores );
+		}
+		else {
+			$this->stable_arsort( $scores );
+		}
 
 		if ( Plugin::is_debugging() ) {
-			array_walk( $scores, function ( $score, $post_id ) use ( $posts, $weights ) {
-				$msg = [];
+
+			// Log the user's profile
+			$msg = "\n\tUser profile:";
+			foreach ( $this->profile as $taxonomy => $terms ) {
+				$msg .= "\n\t\t$taxonomy: " . join( ', ', array_map( function ( $e ) { return "'$e'"; }, $terms ) ) . " where each match gives " . $this->profile_match_score( $taxonomy ) . " points";
+			}
+
+			// Log the posts profile and accumulated points (score)
+			foreach ( $scores as $post_id => $score ) {
+				$msg .= "\n\tPost $post_id get $score points based on matching between user's profile and the post's profile:";
 				foreach ( $posts[ $post_id ] as $taxonomy => $terms ) {
-					$msg[] = '  - ' . join( ', ', array_intersect( $terms, $this->profile[ $taxonomy ] ) ) . " in $taxonomy, where each match gives " . $weights[ $taxonomy ] . " / " . count( $this->profile[ $taxonomy ] ) . " = " . ( $weights[ $taxonomy ] / count( $this->profile[ $taxonomy ] ) ) . " points";
+					$msg .= "\n\t\t$taxonomy: " . join( ', ', array_map( function ( $e ) { return "'$e"; }, $terms ) ) . " where " . $this->profile_match_count( $taxonomy, $terms ) . " match(es)";
 				}
-				$msg = join(" and\n", $msg);
-				$msg = "Post $post_id scored $score due to following matches:\n$msg";
-				Plugin::log( $msg );
-			} );
+			}
+
+			Plugin::log( $msg );
+
 		}
 
 		return array_keys( $scores );
@@ -129,22 +138,6 @@ class Sourcer {
 		global $wpdb;
 
 		Plugin::log();
-
-		$sort_alternatives = [
-			'id-asc' => 'ID ASC',
-			'id-desc' => 'ID DESC',
-			'created-asc' => 'post_date ASC',
-			'created-desc' => 'post_date DESC',
-			'modified-asc' => 'post_modified ASC',
-			'modified-desc' => 'post_modified DESC',
-			'comments-asc' => 'comment_count ASC',
-			'comments-desc' => 'comment_count DESC',
-			'title-asc' => 'post_title ASC',
-			'title-desc' => 'post_title DESC',
-			'author-asc' => 'post_author ASC',
-			'author-desc' => 'post_author DESC',
-			'random' => 'Rand()',
-		];
 
 		// Return cached result if existing and we aren't debugging.
 		if ( ! Plugin::is_debugging() && false !== ( $posts = get_transient( 'kntnt-bb-personalized-posts' ) ) ) {
@@ -166,21 +159,27 @@ class Sourcer {
 			$placeholders[] = substr( str_repeat( "%s,", count( $option ) ), 0, - 1 );
 		}
 
-		$sort_order = ( [
-			'id-asc' => 'p.ID ASC',
-			'id-desc' => 'p.ID DESC',
-			'created-asc' => 'p.post_date ASC',
-			'created-desc' => 'p.post_date DESC',
-			'modified-asc' => 'p.post_modified ASC',
-			'modified-desc' => 'p.post_modified DESC',
-			'comments-asc' => 'p.comment_count ASC',
-			'comments-desc' => 'p.comment_count DESC',
-			'title-asc' => 'p.post_title ASC',
-			'title-desc' => 'p.post_title DESC',
-			'author-asc' => 'p.post_author ASC',
-			'author-desc' => 'p.post_author DESC',
-			'random' => 'Rand()',
-		] )[ Plugin::option( 'sort_order', 'random' ) ];
+		// Sort order
+		if ( 'as-is' != Plugin::option( 'sort_order' ) ) {
+			$sort_order = ( [
+				'id-asc' => 'ORDER BY p.ID ASC',
+				'id-desc' => 'ORDER BY p.ID DESC',
+				'created-asc' => 'ORDER BY p.post_date ASC',
+				'created-desc' => 'ORDER BY p.post_date DESC',
+				'modified-asc' => 'ORDER BY p.post_modified ASC',
+				'modified-desc' => 'ORDER BY p.post_modified DESC',
+				'comments-asc' => 'ORDER BY p.comment_count ASC',
+				'comments-desc' => 'ORDER BY p.comment_count DESC',
+				'title-asc' => 'ORDER BY p.post_title ASC',
+				'title-desc' => 'ORDER BY p.post_title DESC',
+				'author-asc' => 'ORDER BY p.post_author ASC',
+				'author-desc' => 'ORDER BY p.post_author DESC',
+				'random' => 'ORDER BY Rand()',
+			] )[ Plugin::option( 'sort_order', 'random' ) ];
+		}
+		else {
+			$sort_order = '';
+		}
 
 		$query = <<<SQL
 			SELECT p.id AS post_id, tt.taxonomy, t.slug as term FROM $wpdb->posts AS p
@@ -191,7 +190,7 @@ class Sourcer {
 			AND p.post_status = 'publish'
 			AND tt.taxonomy IN ( {$placeholders[1]} )
 			AND t.slug IN ( {$placeholders[2]} )
-			ORDER BY $sort_order;
+			$sort_order;
 SQL;
 
 		$query = $wpdb->prepare( $query, array_reduce( $options, 'array_merge', [] ) );
@@ -208,6 +207,53 @@ SQL;
 
 		Plugin::log( "Returns database posts." );
 		return $posts;
+
+	}
+
+	private function profile_match_score( $taxonomy ) {
+		$weights = Plugin::option( 'taxonomies', [] );
+		return $weights[ $taxonomy ] / count( $this->profile[ $taxonomy ] );
+	}
+
+	private function profile_match_count( $taxonomy, $terms ) {
+		return count( array_intersect( $terms, $this->profile[ $taxonomy ] ) );
+	}
+
+	/**
+	 * Array sort is not stable in PHP (since 4.1.0); the order of two elements
+	 * that compare equal is not guaranteed to be as before sorting. This
+	 * method provides a stable alternative to {@link http://php.net/manual/en/function.arsort.php arsort()}.
+	 *
+	 * Credit: Martijn van der Lee (see {@link http://vanderlee.github.io/PHP-stable-sort-functions/ PHP stable sort}
+	 *
+	 * @param array $array      The array to be sorted.
+	 * @param int   $sort_flags See {@link http://php.net/manual/en/function.sort.php sort()}
+	 *
+	 * @return bool Returns TRUE on success or FALSE on failure.
+	 */
+	private function stable_arsort( array &$array, $sort_flags = SORT_REGULAR ) {
+
+		$index = 0;
+
+		foreach ( $array as &$item ) {
+			$item = [ $index ++, $item ];
+		}
+
+		$result = uasort( $array, function ( $a, $b ) use ( $sort_flags ) {
+			if ( $a[1] == $b[1] ) {
+				return $a[0] - $b[0];
+			}
+			$set = [ - 1 => $b[1], 1 => $a[1] ];
+			asort( $set, $sort_flags );
+			reset( $set );
+			return key( $set );
+		} );
+
+		foreach ( $array as &$item ) {
+			$item = $item[1];
+		}
+
+		return $result;
 
 	}
 

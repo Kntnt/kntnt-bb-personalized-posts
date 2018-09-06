@@ -7,5 +7,5 @@ add_option( 'kntnt-bb-personalized-posts', [
 	'selector' => '',
 	'taxonomies' => [],
 	'post_types' => [ 'post' => 'post' ],
-	'sort_order' => 'random',
+	'sort_order' => 'as-is',
 ] );

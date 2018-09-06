@@ -59,6 +59,7 @@ class Settings extends Abstract_Settings {
 			'label' => __( 'Posts type', 'kntnt-bb-personalized-posts' ),
 			'description' => __( 'Select one or more post types to limit the shown posts to these post types.', 'kntnt-bb-personalized-posts' ),
 			'options' => wp_list_pluck( get_post_types( [ 'public' => true ], 'objects' ), 'name' ),
+			'default' => [ 'post' ],
 			'filter-after' => function ( $post_types ) {
 				return $post_types ? $post_types : 'any';
 			},
@@ -70,8 +71,9 @@ class Settings extends Abstract_Settings {
 		$fields['sort_order'] = [
 			'type' => 'select',
 			'label' => __( 'Sort order', 'kntnt-bb-personalized-posts' ),
-			'description' => __( 'Sort order among osts with equal relevance.', 'kntnt-bb-personalized-posts' ),
+			'description' => __( 'Sort order among posts with equal relevance.', 'kntnt-bb-personalized-posts' ),
 			'options' => [
+				'as-is' => __('No particular order (fastest)','kntnt-bb-personalized-posts' ),
 				'id-asc' => __( 'Post id ascending', 'kntnt-bb-personalized-posts' ),
 				'id-desc' => __( 'Post id descending', 'kntnt-bb-personalized-posts' ),
 				'created-asc' => __( 'Created date ascending', 'kntnt-bb-personalized-posts' ),
@@ -86,6 +88,7 @@ class Settings extends Abstract_Settings {
 				'author-desc' => __( 'Author descending', 'kntnt-bb-personalized-posts' ),
 				'random' => __( 'Random', 'kntnt-bb-personalized-posts' ),
 			],
+			'default' => 'as-is',
 		];
 
 		return $fields;
