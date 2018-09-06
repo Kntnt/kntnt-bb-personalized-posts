@@ -18,8 +18,6 @@ namespace Kntnt\BB_Personalized_Posts;
 
 defined( 'WPINC' ) || die;
 
-define( 'KNTNT_BB_PERSONALIZED_POSTS', true );
-
 require_once __DIR__ . '/classes/class-plugin.php';
 
 new Plugin( [
