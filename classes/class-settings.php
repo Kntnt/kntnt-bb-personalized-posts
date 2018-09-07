@@ -57,7 +57,7 @@ class Settings extends Abstract_Settings {
 		];
 
 		$fields['taxonomies'] = [
-			'type' => 'number group',
+			'type' => 'integer group',
 			'label' => __( 'Taxonomy weights', 'kntnt-bb-personalized-posts' ),
 			'description' => __( 'Enter a number that reflect the taxonomies importance relative to each other (e.g. 500, 200 and 100).', 'kntnt-bb-personalized-posts' ),
 			'options' => ( function () {
