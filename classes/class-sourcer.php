@@ -6,8 +6,6 @@ class Sourcer {
 
 	private $profile;
 
-	private $taxonomies = [];
-
 	private $post_types = [];
 
 	public function __construct() {
@@ -16,9 +14,7 @@ class Sourcer {
 
 		add_action( 'kntnt_cip_init', function ( $cip ) {
 			if ( Plugin::is_context( 'ajax' ) ) {
-				$this->taxonomies = $cip->taxonomies();
 				$this->post_types = $cip->post_types();
-				Plugin::log( 'CIP taxonomies: %s', join( ', ', $this->taxonomies ) );
 				Plugin::log( 'CIP post types: %s', join( ', ', $this->post_types ) );
 			}
 		} );
@@ -177,7 +173,7 @@ class Sourcer {
 		list( $options[], $placeholders[] ) = $this->db_option( $this->post_types, '%s' );
 
 		// In taxonomies clause
-		list( $options[], $placeholders[] ) = $this->db_option( array_intersect( array_keys( $this->taxonomies ), array_keys( $this->profile ) ), '%s' );
+		list( $options[], $placeholders[] ) = $this->db_option( array_intersect( array_keys( Plugin::option( 'taxonomies', [] ) ), array_keys( $this->profile ) ), '%s' );
 
 		// In terms clause
 		list( $options[], $placeholders[] ) = $this->db_option( array_reduce( $this->profile, 'array_merge', [] ), '%s' );

@@ -221,9 +221,12 @@ abstract class Abstract_Settings {
 		$validates = true;
 		foreach ( $fields as $id => $field ) {
 
-			// Some fields (e.g. select multiple) are left out in $opt if
-			// nothing is set. Add them and set their value to null.
-			if ( ! isset( $opt[ $id ] ) ) $opt[ $id ] = null;
+			// Multi choice fields (i.e. `select multiple` and `checkbox group`)
+			// are not set in $opt if nothing is selected. To be consistent
+			// with tohe empty fields, tehy need to be added to $opt as [].
+			if ( ! isset( $opt[ $id ] ) ) {
+				$opt[ $id ] = [];
+			}
 
 			// Select multiple needs special treatment to be consistent with
 			// other fields having options.

@@ -8,15 +8,15 @@ class Settings extends Abstract_Settings {
 
 	private $taxonomies = [];
 
-	public function run() {
-		parent::run();
-		add_action( 'kntnt_cip_init', [ $this, 'set_cip_taxonomies' ] );
-	}
+	public function __construct() {
 
-	public function set_cip_taxonomies( $cip ) {
-		foreach ( $cip->get_taxonomies() as $slug ) {
-			$taxonomies[$slug] = get_taxonomy( $slug )->label;
-		}
+		parent::__construct();
+
+		add_action( 'kntnt_cip_init', function ( $cip ) {
+			$this->taxonomies = $cip->taxonomies();
+			Plugin::log( 'CIP taxonomies: %s', join( ', ', $this->taxonomies ) );
+		} );
+
 	}
 
 	/**
@@ -57,11 +57,18 @@ class Settings extends Abstract_Settings {
 		];
 
 		$fields['taxonomies'] = [
-			'type' => 'text group',
+			'type' => 'number group',
 			'label' => __( 'Taxonomy weights', 'kntnt-bb-personalized-posts' ),
 			'description' => __( 'Enter a number that reflect the taxonomies importance relative to each other (e.g. 500, 200 and 100).', 'kntnt-bb-personalized-posts' ),
-			'options' => $this->taxonomies,
-			'size' => 10,
+			'options' => ( function () {
+				$taxonomies = [];
+				foreach ( $this->taxonomies as $slug ) {
+					$taxonomies[ $slug ] = get_taxonomy( $slug )->label;
+				}
+				return $taxonomies;
+			} )(),
+			'min' => 1,
+			'default' => 100,
 			'validate' => function ( $value ) {
 				foreach ( $value as $weight ) {
 					if ( $weight && ! is_numeric( $weight ) ) return false;
