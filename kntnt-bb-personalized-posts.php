@@ -18,25 +18,34 @@ namespace Kntnt\BB_Personalized_Posts;
 
 defined( 'WPINC' ) || die;
 
-require_once __DIR__ . '/classes/class-plugin.php';
+require_once __DIR__ . '/classes/class-abstract-plugin.php';
 
-new Plugin( [
-	'public' => [
-		'init' => [
-			'UI',
-			'Sourcer',
-			'Meta_Tag_Writer',
-		],
-	],
-	'ajax' => [
-		'admin_init' => [
-			'Sourcer',
-		],
-	],
-	'admin' => [
-		'init' => [
-			'Settings',
-			'Sourcer',
-		],
-	],
-] );
+class Plugin extends Abstract_Plugin {
+
+	public function classes_to_load() {
+
+		return [
+			'public' => [
+				'init' => [
+					'UI',
+					'Sourcer',
+				],
+			],
+			'ajax' => [
+				'admin_init' => [
+					'Sourcer',
+				],
+			],
+			'admin' => [
+				'init' => [
+					'Settings',
+					'Sourcer',
+				],
+			],
+		];
+
+	}
+
+}
+
+new Plugin();

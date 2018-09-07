@@ -2,13 +2,13 @@
 
 namespace Kntnt\BB_Personalized_Posts;
 
-class Plugin {
+abstract class Abstract_Plugin {
 
 	static private $ns;
 
 	static private $plugin_dir;
 
-	public function __construct( $classes_to_load ) {
+	public function __construct() {
 
 		// This plugin's machine name a.k.a. slug.
 		self::$ns = strtr( strtolower( __NAMESPACE__ ), '_\\', '--' );
@@ -32,7 +32,7 @@ class Plugin {
 		} );
 
 		// Setup this plugin to run.
-		foreach ( $classes_to_load as $context => $hoooks_and_classes ) {
+		foreach ( $this->classes_to_load() as $context => $hoooks_and_classes ) {
 			if ( $this->is_context( $context ) ) {
 				foreach ( $hoooks_and_classes as $hook => $classes ) {
 					foreach ( $classes as $class ) {
@@ -44,6 +44,9 @@ class Plugin {
 		}
 
 	}
+
+	// Returns context => hook => class relationships for classes to load.
+	abstract protected function classes_to_load();
 
 	// Name space of plugin.
 	static public function ns() {

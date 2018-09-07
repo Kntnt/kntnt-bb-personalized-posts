@@ -6,6 +6,19 @@ require_once Plugin::plugin_dir( 'classes/class-abstract-settings.php' );
 
 class Settings extends Abstract_Settings {
 
+	private $taxonomies = [];
+
+	public function run() {
+		parent::run();
+		add_action( 'kntnt_cip_init', [ $this, 'set_cip_taxonomies' ] );
+	}
+
+	public function set_cip_taxonomies( $cip ) {
+		foreach ( $cip->get_taxonomies() as $slug ) {
+			$taxonomies[$slug] = get_taxonomy( $slug )->label;
+		}
+	}
+
 	/**
 	 * Returns the settings menu title.
 	 */
@@ -31,6 +44,8 @@ class Settings extends Abstract_Settings {
 			'description' => __( 'The Beaver Builder template with "Personalized posts" as data source.', 'kntnt-bb-personalized-posts' ),
 			'options' => wp_list_pluck( get_posts( [ 'post_type' => 'fl-builder-template', 'nopaging' => true ] ), 'post_title', 'ID' ),
 			'required' => true,
+			'default' => '',
+			'disabled' => [ '' ],
 		];
 
 		$fields['selector'] = [
@@ -44,8 +59,8 @@ class Settings extends Abstract_Settings {
 		$fields['taxonomies'] = [
 			'type' => 'text group',
 			'label' => __( 'Taxonomy weights', 'kntnt-bb-personalized-posts' ),
-			'description' => __( 'Enter a number before each taxonomy that should be taken into account when personalizing the content. The number should reflect the taxonomies importance relative to the other.', 'kntnt-bb-personalized-posts' ),
-			'options' => wp_list_pluck( get_taxonomies( [ 'public' => true ], 'objects' ), 'label' ),
+			'description' => __( 'Enter a number that reflect the taxonomies importance relative to each other (e.g. 500, 200 and 100).', 'kntnt-bb-personalized-posts' ),
+			'options' => $this->taxonomies,
 			'size' => 10,
 			'validate' => function ( $value ) {
 				foreach ( $value as $weight ) {
@@ -54,20 +69,6 @@ class Settings extends Abstract_Settings {
 				return true;
 			},
 			'filter-after' => function ( $taxonomies ) { return array_filter( $taxonomies, function ( $v ) { return (bool) $v; } ); },
-		];
-
-		$fields['post_types'] = [
-			'type' => 'checkbox group',
-			'label' => __( 'Posts type', 'kntnt-bb-personalized-posts' ),
-			'description' => __( 'Select one or more post types to limit the shown posts to these post types.', 'kntnt-bb-personalized-posts' ),
-			'options' => wp_list_pluck( get_post_types( [ 'public' => true ], 'objects' ), 'name' ),
-			'default' => [ 'post' ],
-			'filter-after' => function ( $post_types ) {
-				return $post_types ? $post_types : 'any';
-			},
-			'filter-before' => function ( $post_types ) {
-				return 'any' == $post_types ? [] : $post_types;
-			},
 		];
 
 		$fields['sort_order'] = [
