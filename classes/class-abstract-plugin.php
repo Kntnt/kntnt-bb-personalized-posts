@@ -107,13 +107,28 @@ abstract class Abstract_Plugin {
 	// otherwise $default.
 	static public function option( $key = '', $default = false ) {
 		$opt = get_option( self::$ns, null );
-		if ( $opt === null ) {
+		if ( null === $opt ) {
 			return $default;
 		}
 		if ( empty( $key ) ) {
 			return $opt;
 		}
 		return isset( $opt[ $key ] ) ? $opt[ $key ] : $default;
+	}
+
+	static public function set_option( $key, $value ) {
+		$opt = get_option( self::$ns, [] );
+		$opt[ $key ] = $value;
+		return update_option( self::$ns, $opt );
+	}
+
+	static public function delete_option( $key ) {
+		$opt = get_option( self::$ns, [] );
+		if ( isset( $opt[ $key ] ) ) {
+			unset( $opt[ $key ] );
+			return update_option( self::$ns, $opt );
+		}
+		return false;
 	}
 
 	public static final function log( $message = '', ...$args ) {

@@ -6,11 +6,15 @@ class Sourcer {
 
 	private $profile;
 
+	private $cache;
+
 	private $post_types = [];
 
 	public function __construct() {
 
 		$this->ns = Plugin::ns();
+
+		$this->cache = Plugin::instance( 'Cache' );
 
 		add_action( 'kntnt_cip_init', function ( $cip ) {
 			if ( Plugin::is_context( 'ajax' ) ) {
@@ -21,21 +25,13 @@ class Sourcer {
 
 	}
 
-	/**
-	 * Delete cached list of sorted and ranked posts.
-	 */
-	static public function purge_cache() {
-		Plugin::log();
-		delete_transient( 'kntnt-bb-personalized-posts' );
-	}
-
 	public function run() {
 		if ( Plugin::is_context( 'admin' ) ) {
-			add_action( 'save_post', [ 'Kntnt\BB_Personalized_Posts\Sourcer', 'purge_cache' ] );
-			add_action( 'deleted_post', [ 'Kntnt\BB_Personalized_Posts\Sourcer', 'purge_cache' ] );
-			add_action( 'created_term', [ 'Kntnt\BB_Personalized_Posts\Sourcer', 'purge_cache' ] );
-			add_action( 'edit_term', [ 'Kntnt\BB_Personalized_Posts\Sourcer', 'purge_cache' ] );
-			add_action( 'update_option_' . Plugin::ns(), [ 'Kntnt\BB_Personalized_Posts\Sourcer', 'purge_cache' ] );
+			add_action( 'save_post', [ $this->cache, 'purge' ] );
+			add_action( 'deleted_post', [ $this->cache, 'purge' ] );
+			add_action( 'created_term', [ $this->cache, 'purge' ] );
+			add_action( 'edit_term', [ $this->cache, 'purge' ] );
+			add_action( 'update_option_' . Plugin::ns(), [ $this->cache, 'purge' ] );
 		}
 		else if ( Plugin::option( 'selector' ) && Plugin::option( 'layout_post_id' ) ) {
 			add_filter( 'kntnt_personalized_content_selector', [ $this, 'get_selector' ] );
@@ -101,21 +97,11 @@ class Sourcer {
 
 	}
 
-	/**
-	 * Returns an array of post ID:s sorted from most to least recommended
-	 * based on the profile $profile.
-	 *
-	 * @param array $profile The current visitor's profile.
-	 *
-	 * @return array         ID:s of posts in order from most to least
-	 *                       recommended based on th current users profile.
-	 */
-	protected function recommended_post_ids() {
+	protected function calculate_scores() {
 
-		Plugin::log();
+		$posts = $this->get_posts();
 
 		$scores = [];
-		$posts = $this->get_posts();
 		foreach ( $posts as $post_id => $taxonomies ) {
 			$scores[ $post_id ] = 0;
 			foreach ( $taxonomies as $taxonomy => $terms ) {
@@ -157,17 +143,34 @@ class Sourcer {
 
 	}
 
-	private function get_posts() {
-
-		global $wpdb;
+	private function recommended_post_ids() {
 
 		Plugin::log();
 
-		// Return cached result if existing and we aren't debugging.
-		if ( ! Plugin::is_debugging() && false !== ( $posts = get_transient( 'kntnt-bb-personalized-posts' ) ) ) {
-			Plugin::log( "Returns cached posts." );
-			return $posts;
+		if ( Plugin::is_debugging() ) {
+
+			$scores = $this->calculate_scores();
+
 		}
+		else {
+
+			$key = $this->cache->create_key( [ 'profile_content_scores', $this->profile ] );
+			$scores = $this->cache->get( $key );
+
+			if ( false === $scores ) {
+				$scores = $this->calculate_scores();
+				$this->cache->set( $key, $scores, 0 );
+			}
+
+		}
+
+		return $scores;
+
+	}
+
+	private function get_posts() {
+
+		global $wpdb;
 
 		// In post types clause
 		list( $options[], $placeholders[] ) = $this->db_option( $this->post_types, '%s' );
@@ -230,10 +233,6 @@ SQL;
 			$posts[ $row->post_id ][ $row->taxonomy ][] = $row->term;
 		}
 
-		// Cache the result
-		set_transient( 'kntnt-bb-personalized-posts', $posts, 0 );
-
-		Plugin::log( "Returns database posts." );
 		return $posts;
 
 	}
@@ -245,6 +244,16 @@ SQL;
 
 	private function profile_match_count( $taxonomy, $terms ) {
 		return count( array_intersect( $terms, $this->profile[ $taxonomy ] ) );
+	}
+
+	private function db_option( $option, $format ) {
+		if ( is_array( $option ) ) {
+			$format = substr( str_repeat( "$format,", count( $option ) ), 0, - 1 );
+		}
+		else {
+			$option = [ $option ];
+		}
+		return [ $option, $format ];
 	}
 
 	/**
@@ -283,16 +292,6 @@ SQL;
 
 		return $result;
 
-	}
-
-	private function db_option( $option, $format ) {
-		if ( is_array( $option ) ) {
-			$format = substr( str_repeat( "$format,", count( $option ) ), 0, - 1 );
-		}
-		else {
-			$option = [ $option ];
-		}
-		return [ $option, $format ];
 	}
 
 }
