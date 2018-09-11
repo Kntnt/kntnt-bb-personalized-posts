@@ -100,6 +100,10 @@ abstract class Abstract_Plugin {
 		return new $class_name();
 	}
 
+	static public function template( $file ) {
+		return Plugin::plugin_dir( "includes/$file" );
+	}
+
 	// If $key is left out or empty, e.g. `Plugin::option()`, returns an array
 	// with this plugins all options if existing, otherwise $default.
 	// If $key is included and non-empty, e.g. `Plugin::option('key')`, returns

@@ -58,13 +58,6 @@ abstract class Abstract_Settings {
 	}
 
 	/**
-	 * Returns path to settings page.
-	 */
-	protected function settings_page_template() {
-		return Plugin::plugin_dir( 'includes/settings-page.php' );
-	}
-
-	/**
 	 * Show settings page and update options.
 	 */
 	public function show_settings_page() {
@@ -110,7 +103,7 @@ abstract class Abstract_Settings {
 		}
 
 		// Render settings page; include the settings-page template.
-		include $this->settings_page_template();
+		include Plugin::template( 'settings-page.php' );
 
 	}
 
