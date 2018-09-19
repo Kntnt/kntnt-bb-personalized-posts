@@ -42,6 +42,10 @@ If you are familiar with Git, please do a pull request.
 
 ## Changelog
 
+### 1.0.2
+
+Small refactoring of setting API.
+
 ### 1.0.1
 
 Added support for GitHub Updater.

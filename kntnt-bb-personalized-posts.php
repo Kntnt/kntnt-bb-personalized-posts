@@ -6,7 +6,7 @@
  * Plugin URI:        https://github.com/Kntnt/kntnt-bb-personalized-posts
  * GitHub Plugin URI: https://github.com/Kntnt/kntnt-bb-personalized-posts
  * Description:       Provides personalized posts as data source for Beaver Builder's Post, Post Slider and Post Carousel.
- * Version:           1.0.1
+ * Version:           1.0.2
  * Author:            Thomas Barregren
  * Author URI:        https://www.kntnt.com/
  * License:           GPL-3.0+
