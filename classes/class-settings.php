@@ -42,10 +42,8 @@ class Settings extends Abstract_Settings {
 			'type' => 'select',
 			'label' => __( 'Beaver Builder template', 'kntnt-bb-personalized-posts' ),
 			'description' => __( 'The Beaver Builder template with "Personalized posts" as data source.', 'kntnt-bb-personalized-posts' ),
-			'options' => wp_list_pluck( get_posts( [ 'post_type' => 'fl-builder-template', 'nopaging' => true ] ), 'post_title', 'ID' ),
-			'required' => true,
+			'options' => [ '' => '' ] + wp_list_pluck( get_posts( [ 'post_type' => 'fl-builder-template', 'nopaging' => true ] ), 'post_title', 'ID' ),
 			'default' => '',
-			'disabled' => [ '' ],
 		];
 
 		$fields['selector'] = [

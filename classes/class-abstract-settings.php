@@ -22,7 +22,7 @@ abstract class Abstract_Settings {
 	 * Add settings page to the option menu.
 	 */
 	public function add_options_page() {
-		add_options_page( $this->page_title(), $this->menu_title(), $this->capability(), $this->ns, [ $this, 'show_settings_page' ] );
+		add_options_page( $this->page_title(), $this->menu_title(), $this->capability(), $this->ns, [ $this, 'options_page' ] );
 	}
 
 	/**
@@ -33,6 +33,26 @@ abstract class Abstract_Settings {
 		$settings_link_url = admin_url( "options-general.php?page={$this->ns}" );
 		$actions[] = "<a href=\"$settings_link_url\">$settings_link_name</a>";
 		return $actions;
+	}
+
+	/**
+	 * Show settings page and update options.
+	 */
+	public function options_page() {
+
+		// Abort if current user has not permission to access the settings page.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( __( 'Unauthorized use.', 'kntnt-bb-personalized-posts' ) );
+		}
+
+		// Update options if the option page is saved.
+		if ( isset( $_POST[ $this->ns ] ) ) {
+			$this->update_options( $_POST[ $this->ns ] );
+		}
+
+		// Rende the option page.
+		$this->render_settings_page();
+
 	}
 
 	/**
@@ -55,56 +75,6 @@ abstract class Abstract_Settings {
 	 */
 	protected function capability() {
 		return 'manage_options';
-	}
-
-	/**
-	 * Show settings page and update options.
-	 */
-	public function show_settings_page() {
-
-		// Abort if current user has not permission to access the settings page.
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( __( 'Unauthorized use.', 'kntnt-bb-personalized-posts' ) );
-		}
-
-		// Update options if the page is shown after a form post.
-		if ( isset( $_POST[ $this->ns ] ) ) {
-
-			// Abort if the form's nonce is not correct or expired.
-			if ( ! wp_verify_nonce( $_POST['_wpnonce'], $this->ns ) ) {
-				wp_die( __( 'Nonce failed.', 'kntnt-bb-personalized-posts' ) );
-			}
-
-			// Update options.
-			$this->update_options( $_POST[ $this->ns ] );
-
-		}
-
-		// Variables that will be visible for the settings-page template.
-		$ns = $this->ns;
-		$title = $this->page_title();
-		$fields = $this->fields();
-		$values = Plugin::option();
-
-		// Default values that will be visible for the settings-page template.
-		foreach ( $fields as $id => $field ) {
-
-			// Set default if no value is saved.
-			if ( ! isset( $values[ $id ] ) ) {
-				$values[ $id ] = isset( $field['default'] ) ? $field['default'] : null;
-			}
-
-			// Filter saved value before outputting it.
-			if ( isset( $field['filter-before'] ) ) {
-				$filter = $field['filter-before'];
-				$values[ $id ] = $filter( $values[ $id ] );
-			}
-
-		}
-
-		// Render settings page; include the settings-page template.
-		include Plugin::template( 'settings-page.php' );
-
 	}
 
 	/**
@@ -204,10 +174,48 @@ abstract class Abstract_Settings {
 	}
 
 	/**
+	 * Render settings page.
+	 */
+	private function render_settings_page() {
+
+		// Variables that will be visible for the settings-page template.
+		$ns = $this->ns;
+		$title = $this->page_title();
+		$fields = $this->fields();
+		$values = Plugin::option();
+
+		// Default values that will be visible for the settings-page template.
+		foreach ( $fields as $id => $field ) {
+
+			// Set default if no value is saved.
+			if ( ! isset( $values[ $id ] ) ) {
+				$values[ $id ] = isset( $field['default'] ) ? $field['default'] : null;
+			}
+
+			// Filter saved value before outputting it.
+			if ( isset( $field['filter-before'] ) ) {
+				$filter = $field['filter-before'];
+				$values[ $id ] = $filter( $values[ $id ] );
+			}
+
+		}
+
+		// Render settings page; include the settings-page template.
+		include Plugin::template( 'settings-page.php' );
+
+	}
+
+	/**
 	 * Validate, sanitize and save field values.
 	 */
 	private function update_options( $opt ) {
 
+		// Abort if the form's nonce is not correct or expired.
+		if ( ! wp_verify_nonce( $_POST['_wpnonce'], $this->ns ) ) {
+			wp_die( __( 'Nonce failed.', 'kntnt-bb-personalized-posts' ) );
+		}
+
+		// Get fields
 		$fields = $this->fields();
 
 		// Validate inputted values.
@@ -216,12 +224,12 @@ abstract class Abstract_Settings {
 
 			// Multi choice fields (i.e. `select multiple` and `checkbox group`)
 			// are not set in $opt if nothing is selected. To be consistent
-			// with tohe empty fields, tehy need to be added to $opt as [].
+			// with empty fields, they need to be added to $opt as [].
 			if ( ! isset( $opt[ $id ] ) ) {
 				$opt[ $id ] = [];
 			}
 
-			// Select multiple needs special treatment to be consistent with
+			// `Select multiple` needs special treatment to be consistent with
 			// other fields having options.
 			if ( 'select multiple' == $field['type'] ) {
 				$opt[ $id ] = array_combine( $opt[ $id ], $opt[ $id ] );

@@ -61,7 +61,7 @@
 							<?php case 'select': ?>
                                 <select id="<?php echo $id ?>" name="<?php echo "{$ns}[$id]" ?>" <?php isset( $field['required'] ) && $field['required'] ? 'required' : ''; ?>>
 									<?php foreach ( $field['options'] as $value => $item ): ?>
-                                        <option value="<?php echo $value; ?>" <?php echo isset( $field['disabled'] ) && in_array( $value, $field['disabled'] ) ? 'disabled' : ''; ?> <?php echo $value === $values[ $id ] ? 'selected' : ''; ?>><?php echo $item; ?></option>
+                                        <option value="<?php echo $value; ?>" <?php echo isset( $field['disabled'] ) && in_array( $value, $field['disabled'] ) ? 'disabled' : ''; ?> <?php echo $value == $values[ $id ] ? 'selected' : ''; ?>><?php echo $item; ?></option>
 									<?php endforeach; ?>
                                 </select>
                                 <br>
