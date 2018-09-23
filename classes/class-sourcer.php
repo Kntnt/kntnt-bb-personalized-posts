@@ -112,6 +112,8 @@ class Sourcer {
 			}
 		}
 
+		$scores = apply_filters( 'kntnt_bb_personalized_posts_calculate_scores', $scores, $posts );
+
 		if ( in_array( Plugin::option( 'sort_order' ), [ 'as-is', 'random' ] ) ) {
 			arsort( $scores );
 		}
