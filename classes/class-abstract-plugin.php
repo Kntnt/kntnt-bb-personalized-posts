@@ -89,7 +89,7 @@ abstract class Abstract_Plugin {
 	public static function is_debugging() {
 		static $kntnt_debug;
 		if ( ! $kntnt_debug ) $kntnt_debug = strtr( strtoupper( self::$ns ), '-', '_' );
-		return @constant( 'WP_DEBUG' ) && @constant( $kntnt_debug );
+		return defined( 'WP_DEBUG' ) && constant( 'WP_DEBUG' ) && defined( $kntnt_debug ) && constant( $kntnt_debug );
 	}
 
 	// Returns an instance of the class with the provided name.
