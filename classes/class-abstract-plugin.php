@@ -153,4 +153,16 @@ abstract class Abstract_Plugin {
 		return rtrim( $lhs, $sep ) . $sep . ltrim( $rhs, $sep );
 	}
 
+	public static function get_field( $field, $post_id, $single = true, $type = 'post' ) {
+		if ( function_exists( 'get_field' ) ) {
+			// If ACF is installed, let it get the field.
+			return get_field( $field, $post_id );
+		}
+		else {
+			// If ACF not installed, let's do it ourselves.
+			return get_metadata( $type, $post_id, $field, true );
+		}
+	}
+
+
 }

@@ -99,46 +99,21 @@ class Sourcer {
 
 	protected function calculate_scores() {
 
+		Plugin::log();
+
 		$posts = $this->get_posts();
 
-		$scores = [];
-		foreach ( $posts as $post_id => $taxonomies ) {
-			$scores[ $post_id ] = 0;
-			foreach ( $taxonomies as $taxonomy => $terms ) {
-				if ( isset( $this->profile[ $taxonomy ] ) ) {
-					$scores[ $post_id ] += $this->profile_match_count( $taxonomy, $terms ) * $this->profile_match_score( $taxonomy );
-				}
-
-			}
-		}
-
-		$scores = apply_filters( 'kntnt_bb_personalized_posts_calculate_scores', $scores, $posts );
+		/**
+		 * Filter the score table.
+		 * By default Kntnt\BB_Personalized_Posts\Scorer implements this filter.
+		 */
+		$scores = apply_filters( 'kntnt_bb_personalized_posts_calculate_scores', [], $posts, $this->profile );
 
 		if ( in_array( Plugin::option( 'sort_order' ), [ 'as-is', 'random' ] ) ) {
 			arsort( $scores );
 		}
 		else {
 			$this->stable_arsort( $scores );
-		}
-
-		if ( Plugin::is_debugging() ) {
-
-			// Log the user's profile
-			$msg = "\n\tUser profile:";
-			foreach ( $this->profile as $taxonomy => $terms ) {
-				$msg .= "\n\t\t$taxonomy: " . join( ', ', array_map( function ( $e ) { return "'$e'"; }, $terms ) ) . " where each match gives " . $this->profile_match_score( $taxonomy ) . " points";
-			}
-
-			// Log the posts profile and accumulated points (score)
-			foreach ( $scores as $post_id => $score ) {
-				$msg .= "\n\tPost $post_id get $score points based on matching between user's profile and the post's profile:";
-				foreach ( $posts[ $post_id ] as $taxonomy => $terms ) {
-					$msg .= "\n\t\t$taxonomy: " . join( ', ', array_map( function ( $e ) { return "'$e"; }, $terms ) ) . " where " . $this->profile_match_count( $taxonomy, $terms ) . " match(es)";
-				}
-			}
-
-			Plugin::log( $msg );
-
 		}
 
 		return array_keys( $scores );
@@ -237,15 +212,6 @@ SQL;
 
 		return $posts;
 
-	}
-
-	private function profile_match_score( $taxonomy ) {
-		$weights = Plugin::option( 'taxonomies', [] );
-		return $weights[ $taxonomy ] / count( $this->profile[ $taxonomy ] );
-	}
-
-	private function profile_match_count( $taxonomy, $terms ) {
-		return count( array_intersect( $terms, $this->profile[ $taxonomy ] ) );
 	}
 
 	private function db_option( $option, $format ) {

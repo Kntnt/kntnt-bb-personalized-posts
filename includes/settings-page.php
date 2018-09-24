@@ -23,14 +23,26 @@
 								<?php break; ?>
 							<?php case 'integer': ?>
 							<?php case 'number': ?>
-                                <input id="<?php echo $id ?>" type="number" name="<?php echo "{$ns}[$id]" ?>" value="<?php echo $values[ $id ]; ?>" <?php if ( isset( $field['min'] ) ) { echo 'min="' . $field['min'] . '"'; } ?> <?php if ( isset( $field['max'] ) ) { echo 'max="' . $field['max'] . '"'; } ?> <?php if ( isset( $field['step'] ) ) { echo 'step="' . $field['step'] . '"'; } ?> <?php echo isset( $field['disabled'] ) && $field['disabled'] ? 'disabled' : ''; ?> <?php isset( $field['required'] ) && $field['required'] ? 'required' : ''; ?>>
+                                <input id="<?php echo $id ?>" type="number" name="<?php echo "{$ns}[$id]" ?>" value="<?php echo $values[ $id ]; ?>" <?php if ( isset( $field['min'] ) ) {
+									echo 'min="' . $field['min'] . '"';
+								} ?> <?php if ( isset( $field['max'] ) ) {
+									echo 'max="' . $field['max'] . '"';
+								} ?> <?php if ( isset( $field['step'] ) ) {
+									echo 'step="' . $field['step'] . '"';
+								} ?> <?php echo isset( $field['disabled'] ) && $field['disabled'] ? 'disabled' : ''; ?> <?php isset( $field['required'] ) && $field['required'] ? 'required' : ''; ?>>
                                 <br>
 								<?php break; ?>
 							<?php case 'integer group': ?>
 							<?php case 'number group': ?>
                                 <fieldset id="<?php echo $id ?>">
 									<?php foreach ( $field['options'] as $slug => $item ): ?>
-                                        <input type="number" name="<?php echo "{$ns}[$id][$slug]" ?>" value="<?php echo isset( $values[ $id ][ $slug ] ) ? $values[ $id ][ $slug ] : ''; ?>" size="<?php echo isset( $field['size'] ) ? $field['size'] : 20; ?>" <?php if ( isset( $field['min'] ) ) { echo 'min="' . $field['min'] . '"'; } ?> <?php if ( isset( $field['max'] ) ) { echo 'max="' . $field['max'] . '"'; } ?> <?php if ( isset( $field['step'] ) ) { echo 'step="' . $field['step'] . '"'; } ?> <?php echo isset( $field['disabled'] ) && $field['disabled'] ? 'disabled' : ''; ?> <?php isset( $field['required'] ) && $field['required'] ? 'required' : ''; ?>> <?php echo $item; ?><br>
+                                        <input type="number" name="<?php echo "{$ns}[$id][$slug]" ?>" value="<?php echo isset( $values[ $id ][ $slug ] ) ? $values[ $id ][ $slug ] : ''; ?>" size="<?php echo isset( $field['size'] ) ? $field['size'] : 20; ?>" <?php if ( isset( $field['min'] ) ) {
+											echo 'min="' . $field['min'] . '"';
+										} ?> <?php if ( isset( $field['max'] ) ) {
+											echo 'max="' . $field['max'] . '"';
+										} ?> <?php if ( isset( $field['step'] ) ) {
+											echo 'step="' . $field['step'] . '"';
+										} ?> <?php echo isset( $field['disabled'] ) && $field['disabled'] ? 'disabled' : ''; ?> <?php isset( $field['required'] ) && $field['required'] ? 'required' : ''; ?>> <?php echo $item; ?><br>
                                         <br>
 									<?php endforeach; ?>
                                 </fieldset>
@@ -65,6 +77,18 @@
 									<?php endforeach; ?>
                                 </select>
                                 <br>
+								<?php break; ?>
+							<?php case 'select group': ?>
+                                <fieldset id="<?php echo $id ?>">
+									<?php foreach ( $field['options'] as $slug => $item ): ?>
+                                        <select name="<?php echo "{$ns}[$id][$slug]" ?>" <?php isset( $field['required'] ) && $field['required'] ? 'required' : ''; ?>>
+											<?php foreach ( $item['options'] as $value => $name ): ?>
+                                                <option value="<?php echo $value; ?>" <?php echo $value == $values[ $id ][ $slug ] ? 'selected' : ''; ?>><?php echo $name; ?></option>
+											<?php endforeach; ?>
+                                        </select> <?php echo $item['label']; ?><br>
+                                        <br>
+									<?php endforeach; ?>
+                                </fieldset>
 								<?php break; ?>
 							<?php case 'select multiple': ?>
                                 <select multiple id="<?php echo $id ?>" name="<?php echo "{$ns}[$id][]" ?>">

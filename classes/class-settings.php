@@ -76,6 +76,49 @@ class Settings extends Abstract_Settings {
 			'filter-after' => function ( $taxonomies ) { return array_filter( $taxonomies, function ( $v ) { return (bool) $v; } ); },
 		];
 
+		if ( Plugin::is_acf_active() ) {
+
+			$fields['priority_custom_fields'] = [
+				'type' => 'select group',
+				'label' => __( 'Priority custom fields', 'kntnt-bb-personalized-posts' ),
+				'description' => __( 'For each taxonomy enter the custom field key that can be used to prioritize posts.', 'kntnt-bb-personalized-posts' ),
+				'options' => ( function () {
+					$taxonomies = [];
+					foreach ( $this->taxonomies as $slug ) {
+						$taxonomies[ $slug ] = [
+							'label' => get_taxonomy( $slug )->label,
+							'options' => $this->get_acf_fields(),
+						];
+					}
+					return $taxonomies;
+				} )(),
+			];
+
+		}
+		else {
+
+			$fields['priority_custom_fields'] = [
+				'type' => 'text group',
+				'label' => __( 'Priority custom fields', 'kntnt-bb-personalized-posts' ),
+				'description' => __( 'For each taxonomy enter the custom field key that can be used to prioritize posts.', 'kntnt-bb-personalized-posts' ),
+				'options' => ( function () {
+					$taxonomies = [];
+					foreach ( $this->taxonomies as $slug ) {
+						$taxonomies[ $slug ] = get_taxonomy( $slug )->label;
+					}
+					return $taxonomies;
+				} )(),
+			];
+
+		}
+
+		$fields['priority_score'] = [
+			'type' => 'integer',
+			'label' => __( 'Priority score', 'kntnt-bb-personalized-posts' ),
+			'description' => __( 'The value added to the score of posts that are prioritized.', 'kntnt-bb-personalized-posts' ),
+			'size' => 50,
+		];
+
 		$fields['sort_order'] = [
 			'type' => 'select',
 			'label' => __( 'Sort order', 'kntnt-bb-personalized-posts' ),
@@ -110,6 +153,15 @@ class Settings extends Abstract_Settings {
 
 		return $fields;
 
+	}
+
+	private function get_acf_fields() {
+		global $wpdb;
+		$query = "SELECT CONCAT(post_excerpt, ' (\"', post_title, '\")') as 'title', post_excerpt as 'name' FROM $wpdb->posts where post_type = 'acf-field'";
+		$fields = $wpdb->get_results( $query );
+		$fields = wp_list_pluck( $fields, 'title', 'name' );
+		unset( $fields[''] ); // Some ACF fields (e.g. accordion) lack name if they don't have a title, resulting in an element with an empty key. Remove it.
+		return $fields;
 	}
 
 }
