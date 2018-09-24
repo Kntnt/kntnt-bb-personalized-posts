@@ -19,7 +19,8 @@ namespace Kntnt\BB_Personalized_Posts;
 
 defined( 'WPINC' ) || die;
 
-define( 'KNTNT_BB_PERSONALIZED_POSTS', true );
+// Define WP_DEBUG as TRUE and uncomment next line to debug this plugin.
+// define( 'KNTNT_BB_PERSONALIZED_POSTS', true );
 
 require_once __DIR__ . '/classes/class-abstract-plugin.php';
 
