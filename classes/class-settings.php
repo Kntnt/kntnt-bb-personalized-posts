@@ -13,7 +13,7 @@ class Settings extends Abstract_Settings {
 		parent::__construct();
 
 		add_action( 'kntnt_cip_init', function ( $cip ) {
-			$this->taxonomies = $cip->taxonomies();
+			$this->taxonomies = $cip->visitor_insight_taxonomies();
 			Plugin::log( 'CIP taxonomies: %s', join( ', ', $this->taxonomies ) );
 		} );
 
