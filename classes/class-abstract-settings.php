@@ -1,6 +1,6 @@
 <?php
 
-namespace Kntnt\BB_Personalized_Posts;
+namespace Konzilo\BB_Personalizer;
 
 abstract class Abstract_Settings {
 
@@ -29,7 +29,7 @@ abstract class Abstract_Settings {
 	 * Returns $links with a link to this setting page added.
 	 */
 	public function add_plugin_action_links( $actions ) {
-		$settings_link_name = __( 'Settings', 'kntnt-bb-personalized-posts' );
+		$settings_link_name = __( 'Settings', 'konzilo-bb-personalizer' );
 		$settings_link_url = admin_url( "options-general.php?page={$this->ns}" );
 		$actions[] = "<a href=\"$settings_link_url\">$settings_link_name</a>";
 		return $actions;
@@ -42,7 +42,7 @@ abstract class Abstract_Settings {
 
 		// Abort if current user has not permission to access the settings page.
 		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_die( __( 'Unauthorized use.', 'kntnt-bb-personalized-posts' ) );
+			wp_die( __( 'Unauthorized use.', 'konzilo-bb-personalizer' ) );
 		}
 
 		// Update options if the option page is saved.
@@ -100,7 +100,7 @@ abstract class Abstract_Settings {
 		return empty( $integer ) ||
 		       ( false !== filter_var( $integer, FILTER_VALIDATE_INT ) ) &&
 		       ( ! isset( $field['min'] ) || intval( $field['min'] ) <= intval( $integer ) ) &&
-		       ( ! isset( $field['max'] ) || intval( $field['max'] ) <= intval( $integer ) ) &&
+		       ( ! isset( $field['max'] ) || intval( $field['max'] ) >= intval( $integer ) ) &&
 		       ( ! isset( $field['step'] ) || ! ( ( intval( $integer ) - intval( isset( $field['min'] ) ? $field['min'] : 0 ) ) % intval( $field['step'] ) ) );
 	}
 
@@ -118,7 +118,7 @@ abstract class Abstract_Settings {
 		return empty( $number ) ||
 		       is_numeric( $number ) &&
 		       ( ! isset( $field['min'] ) || floatval( $field['min'] ) <= floatval( $number ) ) &&
-		       ( ! isset( $field['max'] ) || floatval( $field['max'] ) <= floatval( $number ) );
+		       ( ! isset( $field['max'] ) || floatval( $field['max'] ) >= floatval( $number ) );
 	}
 
 	/**
@@ -212,7 +212,7 @@ abstract class Abstract_Settings {
 
 		// Abort if the form's nonce is not correct or expired.
 		if ( ! wp_verify_nonce( $_POST['_wpnonce'], $this->ns ) ) {
-			wp_die( __( 'Nonce failed.', 'kntnt-bb-personalized-posts' ) );
+			wp_die( __( 'Nonce failed.', 'konzilo-bb-personalizer' ) );
 		}
 
 		// Get fields
@@ -222,17 +222,32 @@ abstract class Abstract_Settings {
 		$validates = true;
 		foreach ( $fields as $id => $field ) {
 
-			// Multi choice fields (i.e. `select multiple` and `checkbox group`)
-			// are not set in $opt if nothing is selected. To be consistent
-			// with empty fields, they need to be added to $opt as [].
-			if ( ! isset( $opt[ $id ] ) ) {
+			// A `checkbox` that is not checked will be missing in $opt and
+			// needs to added with 0 as value for consistency.
+			if ( 'checkbox' == $field['type'] && ! isset( $opt[ $id ] ) ) {
+				// TODO: Figure out why it is not possible to store false.
+				$opt[ $id ] = 0;
+			}
+
+			// A `checkbox group` with no options selected will be missing in
+			// $opt and needs to added with an empty array as value for
+			// consistency.
+			if ( 'checkbox group' == $field['type'] && ! isset( $opt[ $id ] ) ) {
 				$opt[ $id ] = [];
 			}
 
-			// `Select multiple` needs special treatment to be consistent with
-			// other fields having options.
+			// A `select multiple` with no options selected will be missing in
+			// $opt and needs to added with an empty array as value for
+			// consistency. A `select multiple` with one or more options
+			// selected needs special treatment to be consistent with other
+			// fields with options.
 			if ( 'select multiple' == $field['type'] ) {
-				$opt[ $id ] = array_combine( $opt[ $id ], $opt[ $id ] );
+				if ( ! isset( $opt[ $id ] ) ) {
+					$opt[ $id ] = [];
+				}
+				else {
+					$opt[ $id ] = array_combine( $opt[ $id ], $opt[ $id ] );
+				}
 			}
 
 			// Validate that required fields have value for the extremely
@@ -304,16 +319,16 @@ abstract class Abstract_Settings {
 			$message = $field['validate-error-message'];
 		}
 		else if ( $field['label'] ) {
-			$message = sprintf( __( '<strong>ERROR:</strong> Invalid data in the field <em>%s</em>.', 'kntnt-bb-personalized-posts' ), $field['label'] );
+			$message = sprintf( __( '<strong>ERROR:</strong> Invalid data in the field <em>%s</em>.', 'konzilo-bb-personalizer' ), $field['label'] );
 		}
 		else {
-			$message = __( '<strong>ERROR:</strong> Please review the settings and try again.', 'kntnt-bb-personalized-posts' );
+			$message = __( '<strong>ERROR:</strong> Please review the settings and try again.', 'konzilo-bb-personalizer' );
 		}
 		$this->notify_admin( $message, 'error' );
 	}
 
 	private function notify_success() {
-		$message = __( 'Successfully saved settings.', 'kntnt-bb-personalized-posts' );
+		$message = __( 'Successfully saved settings.', 'konzilo-bb-personalizer' );
 		$this->notify_admin( $message, 'success' );
 	}
 

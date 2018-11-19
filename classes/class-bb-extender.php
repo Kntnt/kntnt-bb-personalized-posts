@@ -1,6 +1,6 @@
 <?php
 
-namespace Kntnt\BB_Personalized_Posts;
+namespace Konzilo\BB_Personalizer;
 
 class BB_Extender {
 
@@ -10,8 +10,8 @@ class BB_Extender {
 
 	public function bb_render_settings_field( $field, $name, $settings ) {
 		if ( 'data_source' == $name ) {
-			$field['options']['kntnt_bb_personalized_posts'] = __( 'Personalized posts', 'kntnt-bb-personalized-posts' );
-			$field['toggle']['kntnt_bb_personalized_posts'] = [ 'fields' => [ 'posts_per_page' ] ];
+			$field['options']['konzilo_bb_personalizer'] = __( 'Personalized posts', 'konzilo-bb-personalizer' );
+			$field['toggle']['konzilo_bb_personalizer'] = [ 'fields' => [ 'posts_per_page' ] ];
 		}
 		return $field;
 	}

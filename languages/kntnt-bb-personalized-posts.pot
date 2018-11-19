@@ -1,7 +1,7 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: Kntnt's Personalized Content for Beaver Builder\n"
+"Project-Id-Version: Konzilo Personalized Content for Beaver Builder\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2018-09-05 20:02+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
@@ -20,7 +20,7 @@ msgstr ""
 
 #. Name of the plugin
 #: classes/class-settings.php:20
-msgid "Kntnt's Personalized Posts for Beaver Builder"
+msgid "Konzilo Personalized Posts for Beaver Builder"
 msgstr ""
 
 #: classes/class-settings.php:30

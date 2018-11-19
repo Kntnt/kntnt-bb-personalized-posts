@@ -1,6 +1,6 @@
 <?php
 
-namespace Kntnt\BB_Personalized_Posts;
+namespace Konzilo\BB_Personalizer;
 
 require_once Plugin::plugin_dir( 'classes/class-abstract-settings.php' );
 
@@ -12,9 +12,9 @@ class Settings extends Abstract_Settings {
 
 		parent::__construct();
 
-		add_action( 'kntnt_cip_init', function ( $cip ) {
-			$this->taxonomies = $cip->visitor_insight_taxonomies();
-			Plugin::log( 'CIP taxonomies: %s', join( ', ', $this->taxonomies ) );
+		add_action( 'konzilo/content-intelligence/init', function ( $ci ) {
+			$this->taxonomies = $ci->taxonomies();
+			Plugin::log( 'CI taxonomies: %s', join( ', ', $this->taxonomies ) );
 		} );
 
 	}
@@ -23,14 +23,14 @@ class Settings extends Abstract_Settings {
 	 * Returns the settings menu title.
 	 */
 	protected function menu_title() {
-		return __( 'Personalized Posts', 'kntnt-bb-personalized-posts' );
+		return __( 'Personalized Posts', 'konzilo-bb-personalizer' );
 	}
 
 	/**
 	 * Returns the settings page title.
 	 */
 	protected function page_title() {
-		return __( "Kntnt's Personalized Posts for Beaver Builder", 'kntnt-bb-personalized-posts' );
+		return __( "Konzilo Personalized Posts for Beaver Builder", 'konzilo-bb-personalizer' );
 	}
 
 	/**
@@ -40,24 +40,24 @@ class Settings extends Abstract_Settings {
 
 		$fields['layout_post_id'] = [
 			'type' => 'select',
-			'label' => __( 'Beaver Builder template', 'kntnt-bb-personalized-posts' ),
-			'description' => __( 'The Beaver Builder template with "Personalized posts" as data source.', 'kntnt-bb-personalized-posts' ),
+			'label' => __( 'Beaver Builder template', 'konzilo-bb-personalizer' ),
+			'description' => __( 'The Beaver Builder template with "Personalized posts" as data source.', 'konzilo-bb-personalizer' ),
 			'options' => [ '' => '' ] + wp_list_pluck( get_posts( [ 'post_type' => 'fl-builder-template', 'nopaging' => true ] ), 'post_title', 'ID' ),
 			'default' => '',
 		];
 
 		$fields['selector'] = [
 			'type' => 'text',
-			'label' => __( 'jQuery selector', 'kntnt-bb-personalized-posts' ),
-			'description' => __( 'jQuery selector targeting the div element(s) which HTML should be replaced with the Beaver Builder layout above.', 'kntnt-bb-personalized-posts' ),
+			'label' => __( 'jQuery selector', 'konzilo-bb-personalizer' ),
+			'description' => __( 'jQuery selector targeting the div element(s) which HTML should be replaced with the Beaver Builder layout above.', 'konzilo-bb-personalizer' ),
 			'required' => true,
 			'size' => 50,
 		];
 
 		$fields['taxonomies'] = [
 			'type' => 'integer group',
-			'label' => __( 'Taxonomy weights', 'kntnt-bb-personalized-posts' ),
-			'description' => __( 'Enter a number that reflect the taxonomies importance relative to each other (e.g. 500, 200 and 100).', 'kntnt-bb-personalized-posts' ),
+			'label' => __( 'Taxonomy weights', 'konzilo-bb-personalizer' ),
+			'description' => __( 'Enter a number that reflect the taxonomies importance relative to each other (e.g. 500, 200 and 100).', 'konzilo-bb-personalizer' ),
 			'options' => ( function () {
 				$taxonomies = [];
 				foreach ( $this->taxonomies as $slug ) {
@@ -80,8 +80,8 @@ class Settings extends Abstract_Settings {
 
 			$fields['priority_custom_fields'] = [
 				'type' => 'select group',
-				'label' => __( 'Priority custom fields', 'kntnt-bb-personalized-posts' ),
-				'description' => __( 'For each taxonomy enter the custom field key that can be used to prioritize posts.', 'kntnt-bb-personalized-posts' ),
+				'label' => __( 'Priority custom fields', 'konzilo-bb-personalizer' ),
+				'description' => __( 'For each taxonomy enter the custom field key that can be used to prioritize posts.', 'konzilo-bb-personalizer' ),
 				'options' => ( function () {
 					$taxonomies = [];
 					foreach ( $this->taxonomies as $slug ) {
@@ -99,8 +99,8 @@ class Settings extends Abstract_Settings {
 
 			$fields['priority_custom_fields'] = [
 				'type' => 'text group',
-				'label' => __( 'Priority custom fields', 'kntnt-bb-personalized-posts' ),
-				'description' => __( 'For each taxonomy enter the custom field key that can be used to prioritize posts.', 'kntnt-bb-personalized-posts' ),
+				'label' => __( 'Priority custom fields', 'konzilo-bb-personalizer' ),
+				'description' => __( 'For each taxonomy enter the custom field key that can be used to prioritize posts.', 'konzilo-bb-personalizer' ),
 				'options' => ( function () {
 					$taxonomies = [];
 					foreach ( $this->taxonomies as $slug ) {
@@ -114,41 +114,45 @@ class Settings extends Abstract_Settings {
 
 		$fields['priority_score'] = [
 			'type' => 'integer',
-			'label' => __( 'Priority score', 'kntnt-bb-personalized-posts' ),
-			'description' => __( 'The value added to the score of posts that are prioritized.', 'kntnt-bb-personalized-posts' ),
+			'label' => __( 'Priority score', 'konzilo-bb-personalizer' ),
+			'description' => __( 'The value added to the score of posts that are prioritized.', 'konzilo-bb-personalizer' ),
 			'size' => 50,
 		];
 
 		$fields['sort_order'] = [
 			'type' => 'select',
-			'label' => __( 'Sort order', 'kntnt-bb-personalized-posts' ),
-			'description' => __( 'Sort order among posts with equal relevance.', 'kntnt-bb-personalized-posts' ),
+			'label' => __( 'Sort order', 'konzilo-bb-personalizer' ),
+			'description' => __( 'Sort order among posts with equal relevance.', 'konzilo-bb-personalizer' ),
 			'options' => [
-				'as-is' => __( 'No particular order (fastest)', 'kntnt-bb-personalized-posts' ),
-				'id-asc' => __( 'Post id ascending', 'kntnt-bb-personalized-posts' ),
-				'id-desc' => __( 'Post id descending', 'kntnt-bb-personalized-posts' ),
-				'created-asc' => __( 'Created date ascending', 'kntnt-bb-personalized-posts' ),
-				'created-desc' => __( 'Created date descending', 'kntnt-bb-personalized-posts' ),
-				'modified-asc' => __( 'Modified ate ascending', 'kntnt-bb-personalized-posts' ),
-				'modified-desc' => __( 'Modified date descending', 'kntnt-bb-personalized-posts' ),
-				'comments-asc' => __( 'Comment count ascending', 'kntnt-bb-personalized-posts' ),
-				'comments-desc' => __( 'Comment count descending', 'kntnt-bb-personalized-posts' ),
-				'title-asc' => __( 'Title Ascending', 'kntnt-bb-personalized-posts' ),
-				'title-desc' => __( 'Title descending', 'kntnt-bb-personalized-posts' ),
-				'author-asc' => __( 'Author ascending', 'kntnt-bb-personalized-posts' ),
-				'author-desc' => __( 'Author descending', 'kntnt-bb-personalized-posts' ),
-				'random' => __( 'Random', 'kntnt-bb-personalized-posts' ),
+				'as-is' => __( 'No particular order (fastest)', 'konzilo-bb-personalizer' ),
+				'id-asc' => __( 'Post id ascending', 'konzilo-bb-personalizer' ),
+				'id-desc' => __( 'Post id descending', 'konzilo-bb-personalizer' ),
+				'created-asc' => __( 'Created date ascending', 'konzilo-bb-personalizer' ),
+				'created-desc' => __( 'Created date descending', 'konzilo-bb-personalizer' ),
+				'modified-asc' => __( 'Modified ate ascending', 'konzilo-bb-personalizer' ),
+				'modified-desc' => __( 'Modified date descending', 'konzilo-bb-personalizer' ),
+				'comments-asc' => __( 'Comment count ascending', 'konzilo-bb-personalizer' ),
+				'comments-desc' => __( 'Comment count descending', 'konzilo-bb-personalizer' ),
+				'title-asc' => __( 'Title Ascending', 'konzilo-bb-personalizer' ),
+				'title-desc' => __( 'Title descending', 'konzilo-bb-personalizer' ),
+				'author-asc' => __( 'Author ascending', 'konzilo-bb-personalizer' ),
+				'author-desc' => __( 'Author descending', 'konzilo-bb-personalizer' ),
+				'random' => __( 'Random', 'konzilo-bb-personalizer' ),
 			],
 			'default' => 'as-is',
 		];
 
 		$fields['db_limit'] = [
 			'type' => 'integer',
-			'label' => __( 'Database limit', 'kntnt-bb-personalized-posts' ),
-			'description' => __( sprintf( 'Enter an integer to limit the maximum numbers of rows that will be fetched from the database (i.e. the number of SQL\'s LIMIT clause). If set, you must consider that typically there are several times more rows than posts, and the limit is applied after sorting the rows but before ranking posts. Most sites don\'t have that many posts or that heavy traffic that requires a limit. So leave it empty if you can. If WP_DEBUG is false (%s), the sorted and ranked list of posts is cached.', defined( 'WP_DEBUG' ) && WP_DEBUG ? 'which it\'s NOT!' : 'which it is' ), 'kntnt-bb-personalized-posts' ),
+			'label' => __( 'Database limit', 'konzilo-bb-personalizer' ),
+			'description' => __( sprintf( 'Enter an integer to limit the maximum numbers of rows that will be fetched from the database (i.e. the number of SQL\'s LIMIT clause). If set, you must consider that typically there are several times more rows than posts, and the limit is applied after sorting the rows but before ranking posts. Most sites don\'t have that many posts or that heavy traffic that requires a limit. So leave it empty if you can. If WP_DEBUG is false (%s), the sorted and ranked list of posts is cached.', defined( 'WP_DEBUG' ) && WP_DEBUG ? 'which it\'s NOT!' : 'which it is' ), 'konzilo-bb-personalizer' ),
 			'default' => '',
 			'min' => 1,
 			'size' => 50,
+		];
+
+		$fields['submit'] = [
+			'type' => 'submit',
 		];
 
 		return $fields;

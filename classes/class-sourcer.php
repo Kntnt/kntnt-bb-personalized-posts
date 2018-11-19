@@ -1,6 +1,6 @@
 <?php
 
-namespace Kntnt\BB_Personalized_Posts;
+namespace Konzilo\BB_Personalizer;
 
 class Sourcer {
 
@@ -16,10 +16,10 @@ class Sourcer {
 
 		$this->cache = Plugin::instance( 'Cache' );
 
-		add_action( 'kntnt_cip_init', function ( $cip ) {
+		add_action( 'konzilo/content-intelligence/init', function ( $ci ) {
 			if ( Plugin::is_context( 'ajax' ) ) {
-				$this->post_types = $cip->post_types();
-				Plugin::log( 'CIP post types: %s', join( ', ', $this->post_types ) );
+				$this->post_types = $ci->post_types();
+				Plugin::log( 'CI post types: %s', join( ', ', $this->post_types ) );
 			}
 		} );
 
@@ -34,8 +34,8 @@ class Sourcer {
 			add_action( 'update_option_' . Plugin::ns(), [ $this->cache, 'purge' ] );
 		}
 		else if ( Plugin::option( 'selector' ) && Plugin::option( 'layout_post_id' ) ) {
-			add_filter( 'kntnt_personalized_content_selector', [ $this, 'get_selector' ] );
-			add_filter( 'kntnt_personalized_content_output', [ $this, 'get_bb_posts_output' ], 10, 3 );
+			add_filter( 'konzilo/personalizer/selector', [ $this, 'get_selector' ] );
+			add_filter( 'konzilo/personalizer/output', [ $this, 'get_bb_posts_output' ], 10, 3 );
 			add_filter( 'fl_builder_loop_query_args', [ $this, 'loop_query_args' ] );
 		}
 	}
@@ -71,7 +71,7 @@ class Sourcer {
 
 	public function loop_query_args( $args ) {
 
-		if ( 'kntnt_bb_personalized_posts' == $args['settings']->data_source ) {
+		if ( 'konzilo_bb_personalizer' == $args['settings']->data_source ) {
 
 			Plugin::log();
 
@@ -105,9 +105,9 @@ class Sourcer {
 
 		/**
 		 * Filter the score table.
-		 * By default Kntnt\BB_Personalized_Posts\Scorer implements this filter.
+		 * By default Konzilo\BB_Personalizer\Scorer implements this filter.
 		 */
-		$scores = apply_filters( 'kntnt_bb_personalized_posts_calculate_scores', [], $posts, $this->profile );
+		$scores = apply_filters( 'konzilo_bb_personalizer_calculate_scores', [], $posts, $this->profile );
 
 		if ( in_array( Plugin::option( 'sort_order' ), [ 'as-is', 'random' ] ) ) {
 			arsort( $scores );

@@ -2,25 +2,25 @@
 
 /**
  * @wordpress-plugin
- * Plugin Name:       Kntnt's Personalized Posts for Beaver Builder
- * Plugin URI:        https://github.com/Kntnt/kntnt-bb-personalized-posts
- * GitHub Plugin URI: https://github.com/Kntnt/kntnt-bb-personalized-posts
+ * Plugin Name:       Konzilo Personalizer for Beaver Builder
+ * Plugin URI:        https://github.com/kntnt/konzilo-bb-personalizer
+ * GitHub Plugin URI: https://github.com/kntnt/konzilo-bb-personalizer
  * Description:       Provides personalized posts as data source for Beaver Builder's Post, Post Slider and Post Carousel.
  * Version:           1.0.3
  * Author:            Thomas Barregren
  * Author URI:        https://www.kntnt.com/
  * License:           GPL-3.0+
  * License URI:       http://www.gnu.org/licenses/gpl-3.0.txt
- * Text Domain:       kntnt-bb-personalized-posts
+ * Text Domain:       konzilo-bb-personalizer
  * Domain Path:       /languages
  */
 
-namespace Kntnt\BB_Personalized_Posts;
+namespace Konzilo\BB_Personalizer;
 
 defined( 'WPINC' ) || die;
 
 // Define WP_DEBUG as TRUE and uncomment next line to debug this plugin.
-// define( 'KNTNT_BB_PERSONALIZED_POSTS', true );
+define( 'KONZILO_BB_PERSONALIZER', true );
 
 require_once __DIR__ . '/classes/class-abstract-plugin.php';
 

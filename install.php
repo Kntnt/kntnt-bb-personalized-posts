@@ -2,7 +2,7 @@
 
 defined( 'WPINC' ) || die;
 
-add_option( 'kntnt-bb-personalized-posts', [
+add_option( 'konzilo-bb-personalizer', [
 	'layout_post_id' => '',
 	'selector' => '',
 	'taxonomies' => [],

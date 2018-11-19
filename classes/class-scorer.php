@@ -1,6 +1,6 @@
 <?php
 
-namespace Kntnt\BB_Personalized_Posts;
+namespace Konzilo\BB_Personalizer;
 
 
 class Scorer {
@@ -21,7 +21,7 @@ class Scorer {
 	}
 
 	public function run() {
-		add_filter( 'kntnt_bb_personalized_posts_calculate_scores', [ $this, 'calculate_scores' ], 10, 3 );
+		add_filter( 'konzilo_bb_personalizer_calculate_scores', [ $this, 'calculate_scores' ], 10, 3 );
 	}
 
 	public function calculate_scores( $scores, $posts, $visitor_profile ) {
