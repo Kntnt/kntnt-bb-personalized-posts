@@ -20,7 +20,7 @@ namespace Konzilo\BB_Personalizer;
 defined( 'WPINC' ) || die;
 
 // Define WP_DEBUG as TRUE and uncomment next line to debug this plugin.
-define( 'KONZILO_BB_PERSONALIZER', true );
+// define( 'KONZILO_BB_PERSONALIZER', true );
 
 require_once __DIR__ . '/classes/class-abstract-plugin.php';
 
