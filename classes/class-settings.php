@@ -38,12 +38,15 @@ class Settings extends Abstract_Settings {
 	 */
 	protected function fields() {
 
+		$disabled = (bool) Plugin::unsatisfied_dependencies();
+
 		$fields['layout_post_id'] = [
 			'type' => 'select',
 			'label' => __( 'Beaver Builder template', 'konzilo-bb-personalizer' ),
 			'description' => __( 'The Beaver Builder template with "Personalized posts" as data source.', 'konzilo-bb-personalizer' ),
 			'options' => [ '' => '' ] + wp_list_pluck( get_posts( [ 'post_type' => 'fl-builder-template', 'nopaging' => true ] ), 'post_title', 'ID' ),
 			'default' => '',
+			'disabled' => $disabled,
 		];
 
 		$fields['selector'] = [
@@ -52,6 +55,7 @@ class Settings extends Abstract_Settings {
 			'description' => __( 'jQuery selector targeting the div element(s) which HTML should be replaced with the Beaver Builder layout above.', 'konzilo-bb-personalizer' ),
 			'required' => true,
 			'size' => 50,
+			'disabled' => $disabled,
 		];
 
 		$fields['taxonomies'] = [
@@ -74,6 +78,7 @@ class Settings extends Abstract_Settings {
 				return true;
 			},
 			'filter-after' => function ( $taxonomies ) { return array_filter( $taxonomies, function ( $v ) { return (bool) $v; } ); },
+			'disabled' => $disabled,
 		];
 
 		if ( Plugin::is_acf_active() ) {
@@ -92,6 +97,7 @@ class Settings extends Abstract_Settings {
 					}
 					return $taxonomies;
 				} )(),
+				'disabled' => $disabled,
 			];
 
 		}
@@ -108,6 +114,7 @@ class Settings extends Abstract_Settings {
 					}
 					return $taxonomies;
 				} )(),
+				'disabled' => $disabled,
 			];
 
 		}
@@ -117,6 +124,7 @@ class Settings extends Abstract_Settings {
 			'label' => __( 'Priority score', 'konzilo-bb-personalizer' ),
 			'description' => __( 'The value added to the score of posts that are prioritized.', 'konzilo-bb-personalizer' ),
 			'size' => 50,
+			'disabled' => $disabled,
 		];
 
 		$fields['sort_order'] = [
@@ -140,6 +148,7 @@ class Settings extends Abstract_Settings {
 				'random' => __( 'Random', 'konzilo-bb-personalizer' ),
 			],
 			'default' => 'as-is',
+			'disabled' => $disabled,
 		];
 
 		$fields['db_limit'] = [
@@ -149,10 +158,12 @@ class Settings extends Abstract_Settings {
 			'default' => '',
 			'min' => 1,
 			'size' => 50,
+			'disabled' => $disabled,
 		];
 
 		$fields['submit'] = [
 			'type' => 'submit',
+			'disabled' => $disabled,
 		];
 
 		return $fields;
