@@ -6,21 +6,23 @@ WordPress plugin that provides personalized posts as data source for Beaver Buil
 
 TODO
 
+## Requirements
+
+This plugin requires [Konzilo Personalizer](https://github.com/kntnt/konzilo-personalizer) to work.
+
 ## Installation
 
 Install the plugin [the usually way](https://codex.wordpress.org/Managing_Plugins#Installing_Plugins).
-
-You must also install [Konzilo Content Intelligence Platform plugin](https://github.com/kntnt/konzilo-ci).
 
 ## Frequently Asked Questions
 
 ### Where is the setting page?
 
-There is no setting page.
+Look for *Personalized Content* in the Settings menu.
 
 ### How do I know if there is a new version?
 
-This plugin is currently [hosted on GitHub](https://github.com/kntnt/konzilo-ci); one way would be to ["watch" the repository](https://help.github.com/articles/watching-and-unwatching-repositories/).
+This plugin is currently [hosted on GitHub](https://github.com/kntnt/konzilo-bb-personalizer); one way would be to ["watch" the repository](https://help.github.com/articles/watching-and-unwatching-repositories/).
 
 If you prefer WordPress to nag you about an update and let you update from within its administrative interface (i.e. the usually way) you must [download *GitHub Updater*](https://github.com/afragen/github-updater/archive/develop.zip) and install and activate it the usually way. Please visit its [wiki](https://github.com/afragen/github-updater/wiki) for more information. 
 
