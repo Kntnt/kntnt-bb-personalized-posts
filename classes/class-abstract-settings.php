@@ -178,6 +178,12 @@ abstract class Abstract_Settings {
 	 */
 	private function render_settings_page() {
 
+		// Warn about unsatisfied dependencies.
+		if ( $unsatisfied_dependencies = Plugin::unsatisfied_dependencies() ) {
+			$message = sprintf( _n( 'This plugin must be installed and active: %s', 'These plugins must be installed and active: %s', count( $unsatisfied_dependencies ), 'konzilo-bb-personalizer' ), join( ', ', $unsatisfied_dependencies ) );
+			$this->notify_admin( $message, 'warning' );
+		}
+
 		// Variables that will be visible for the settings-page template.
 		$ns = $this->ns;
 		$title = $this->page_title();

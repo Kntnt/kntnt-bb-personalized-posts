@@ -8,6 +8,8 @@ abstract class Abstract_Plugin {
 
 	static private $plugin_dir;
 
+	static private $unsatisfied_dependencies = null;
+
 	public function __construct() {
 
 		// This plugin's machine name a.k.a. slug.
@@ -48,6 +50,10 @@ abstract class Abstract_Plugin {
 	// Returns context => hook => class relationships for classes to load.
 	abstract protected function classes_to_load();
 
+	// Returns an array of 'plugin_slug' => 'Plugin Name' for each plugin that
+	// must be active for his plugin to work.
+	static protected function dependencies() { return []; }
+
 	// Name space of plugin.
 	static public function ns() {
 		return self::$ns;
@@ -64,10 +70,17 @@ abstract class Abstract_Plugin {
 		return $version;
 	}
 
-	// Returns true if and only if there is a a plugin named $plugin and
-	// it is active.
-	static public function is_active_plugin( $plugin ) {
-		return in_array( "$plugin/$plugin.php", (array) get_option( 'active_plugins', [] ) );
+	// Return an array of not active plugins that this plugin is dependent on.
+	static public function unsatisfied_dependencies() {
+		if ( null === self::$unsatisfied_dependencies ) {
+			self::$unsatisfied_dependencies = [];
+			foreach ( static::dependencies() as $slug => $name ) {
+				if ( ! is_plugin_active( $slug ) ) {
+					self::$unsatisfied_dependencies[ $slug ] = $name;
+				}
+			}
+		}
+		return self::$unsatisfied_dependencies;
 	}
 
 	// This plugin's path relative file system root, with no trailing slash.
@@ -127,8 +140,8 @@ abstract class Abstract_Plugin {
 	// Plugin::option()['key'] is returned if existing, otherwise $default is
 	// returned. If $plugin is left out, null or empty, this plugin is used.
 	static public function option( $key = null, $default = false, $plugin = null ) {
-		if ( $plugin) {
-			if (!is_active_plugin($plugin) ) {
+		if ( $plugin ) {
+			if ( ! is_plugin_active( $plugin ) ) {
 				return $default;
 			}
 		}
