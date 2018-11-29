@@ -33,7 +33,7 @@ class Sourcer {
 			add_action( 'edit_term', [ $this->cache, 'purge' ] );
 			add_action( 'update_option_' . Plugin::ns(), [ $this->cache, 'purge' ] );
 		}
-		else if ( Plugin::option( 'selector' ) && Plugin::option( 'layout_post_id' ) ) {
+		else if ( Plugin::option( 'selector' ) && Plugin::option( 'layout_post_id' ) && ! Plugin::unsatisfied_dependencies() ) {
 			add_filter( 'konzilo/personalizer/selector', [ $this, 'get_selector' ] );
 			add_filter( 'konzilo/personalizer/output', [ $this, 'get_bb_posts_output' ], 10, 3 );
 			add_filter( 'fl_builder_loop_query_args', [ $this, 'loop_query_args' ] );
@@ -48,31 +48,13 @@ class Sourcer {
 
 		Plugin::log();
 
-		/* TODO: REMOVE THIS WHEN BB BUG(?) IS FIXED.
-		 * Beaver Builder Page Builder (BBPB) 2.1.4.5 works without this
-		 * workaround but 2.1.5.2 and 2.1.6.3 don't. The difference is that
-		 * jquery-imagesloaded is enqueued in 2.1.4.5 but not in 2.1.5.2 and
-		 * 2.1.6.3
-		 *
-		 * It seems that BBPB from version 2.1.5.2 instead of
-		 * jquery-imagesloaded use /wp-includes/js/imagesloaded.min.js. Since
-		 * jquery-imagesloaded is a jQuery plugin and imagesloaded is not,
-		 * BBPB have been rewritten with respect to how this code is loaded
-		 * and used.
-		 *
-		 * But it seems to exist dependencies of jquery-imagesloaded that have
-		 * not yet been fixed. At least the Post Grid module has such dependency
-		 * (see line 83 in …/bb-plugin/modules/post-grid/js/frontend.js).
-		 *
-		 * If not another plugin or theme (e.g. Beaver Builder Framework Theme)
-		 * enqueue jquery-imagesloaded, a layout using post grid will not be
-		 * shown and following error message are written to the console:
-		 * "TypeError: wrap.imagesLoaded is not a function".
-		 *
-		 * The workaround below enqueue the version of jquery.imagesloaded
-		 * used by the BBPB 2.1.4.5.
+		/* TODO: Remove this if the bug
+		 * Calling FLBuilder::render_query() in an AJAX context don't add
+		 * imagesloaded with jQuery dependency which some modules, e.g.
+		 * Post Grid, requires. This is a workaround.
 		 */
-		wp_enqueue_script( 'jquery-imagesloaded', 'https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/3.2.0/imagesloaded.min.js', [ 'jquery' ] );
+		wp_deregister_script( 'imagesloaded' );
+		wp_register_script( 'imagesloaded', includes_url( 'js/imagesloaded.min.js' ), [ 'jquery' ] );
 
 		// Store the profile; we don't need it now, but later.
 		$this->profile = $profile;
@@ -88,7 +70,7 @@ class Sourcer {
 		ob_start();
 		\FLBuilder::render_query( $args );
 		wp_styles()->do_items();
-		wp_scripts()->do_items();
+		wp_scripts()->do_items(); // Causes a warning that synchronous XMLHttpRequest on the main thread is deprecated.
 		$out = ob_get_clean();
 
 		return $out;
