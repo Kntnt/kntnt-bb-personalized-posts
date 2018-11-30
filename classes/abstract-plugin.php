@@ -10,6 +10,8 @@ abstract class Abstract_Plugin {
 
 	static private $unsatisfied_dependencies = null;
 
+	static private $is_debugging = null;
+
 	public function __construct() {
 
 		// This plugin's machine name a.k.a. slug.
@@ -23,7 +25,7 @@ abstract class Abstract_Plugin {
 		if ( is_readable( self::$plugin_dir . '/install.php' ) ) {
 			register_activation_hook( self::$plugin_dir . '/' . self::$ns . '.php', function () {
 				if ( null === get_option( self::$ns, null ) ) {
-					require_once self::$plugin_dir . '/install.php';
+					require self::$plugin_dir . '/install.php';
 				}
 			} );
 		}
@@ -117,16 +119,18 @@ abstract class Abstract_Plugin {
 	}
 
 	public static function is_debugging() {
-		static $konzilo_debug;
-		if ( ! $konzilo_debug ) $konzilo_debug = strtr( strtoupper( self::$ns ), '-', '_' );
-		return defined( 'WP_DEBUG' ) && constant( 'WP_DEBUG' ) && defined( $konzilo_debug ) && constant( $konzilo_debug );
+		if ( null == self::$is_debugging ) {
+			$kntnt_debug = strtr( strtoupper( self::$ns ), '-', '_' );
+			self::$is_debugging = defined( 'WP_DEBUG' ) && constant( 'WP_DEBUG' ) && defined( $kntnt_debug ) && constant( $kntnt_debug );
+		}
+		return self::$is_debugging;
 	}
 
 	// Returns an instance of the class with the provided name.
 	static public function instance( $class_name ) {
 		$n = strtr( strtolower( $class_name ), '_', '-' );
 		$class_name = __NAMESPACE__ . '\\' . $class_name;
-		require_once self::$plugin_dir . "/classes/class-$n.php";
+		require_once self::$plugin_dir . "/classes/$n.php";
 		return new $class_name();
 	}
 
@@ -134,28 +138,50 @@ abstract class Abstract_Plugin {
 		return Plugin::plugin_dir( "includes/$file" );
 	}
 
-	// If $key is left out, null or empty, the option named as $plugin will be
-	// returned if existing and the plugin exists and is active, otherwise
-	// $default is returned. If $key is provided and is not null nor empty,
-	// Plugin::option()['key'] is returned if existing, otherwise $default is
-	// returned. If $plugin is left out, null or empty, this plugin is used.
-	static public function option( $key = null, $default = false, $plugin = null ) {
+	// The call `option()` returns an option named as this plugin if it exists
+	// and is an array. If it doesn't exists or is not an array, false is
+	// returned.
+	//
+	// The call `option($key)` returns option()[$key] if the key exists.
+	// If the $key is null or false or empty or don't exists, false is returned.
+	//
+	// The call `option($key, $default)` behave as `option($key)` with the
+	// change that if the $key is null or false or empty or don't exists,
+	// following happens: If $default is a callable, it is called and its
+	// return value is returned. Otherwise the $default itself is returned.
+	//
+	// The call `option($key, $default, $update)` behave as
+	// `option($key, $default)` with the change that the returned value is
+	// stored if $key is not null nor false nor empty but don't exists and
+	// $update == true.
+	//
+	// The call `option($key, $default, $update, $plugin)` where $plugin is a
+	// non-empty string and the plugin directory of Wordpress contains a plugin
+	// main file named "$plugin/$plugin.php" and this plugin is active, behaves
+	// as if `option($key, $default, $update)` where called on this plugin.
+	static public function option( $key = null, $default = false, $update = false, $plugin = null ) {
 		if ( $plugin ) {
-			if ( ! is_plugin_active( $plugin ) ) {
-				return $default;
+			if ( ! is_plugin_active( "$plugin/$plugin.php" ) ) {
+				return self::evaluate( $default );
 			}
 		}
 		else {
 			$plugin = self::$ns;
 		}
 		$opt = get_option( $plugin, null );
-		if ( null === $opt ) {
-			return $default;
+		if ( ! is_array( $opt ) ) {
+			return self::evaluate( $default );
 		}
-		if ( empty( $key ) ) {
-			return $opt;
+		if ( $key ) {
+			if ( ! isset( $opt[ $key ] ) ) {
+				$opt[ $key ] = self::evaluate( $default );
+				if ( $update ) {
+					update_option( $plugin, $opt );
+				}
+			}
+			return $opt[ $key ];
 		}
-		return isset( $opt[ $key ] ) ? $opt[ $key ] : $default;
+		return $opt;
 	}
 
 	static public function set_option( $key, $value ) {
@@ -173,6 +199,29 @@ abstract class Abstract_Plugin {
 		return false;
 	}
 
+	public static function get_field( $field, $post_id, $single = false, $type = 'post' ) {
+		if ( function_exists( 'get_field' ) ) {
+			// If ACF is installed, let it get the field.
+			return get_field( $field, $post_id );
+		}
+		else {
+			// If ACF not installed, let's do it ourselves.
+			return get_metadata( $type, $post_id, $field, $single );
+		}
+	}
+
+	// Returns $value(...$args) if $value is callable, and $value if it is not
+	// callable.
+	static public function evaluate( $value, ...$args ) {
+		return is_callable( $value ) ? call_user_func( $value, ...$args ) : $value;
+	}
+
+	// Return the string "{$lhs}{$sep}{$rhs}" after any trailing $sep in $lhs
+	// and any leading $sep in $rhs. By default $sep is forward slash.
+	public static function str_join( $lhs, $rhs, $sep = '/' ) {
+		return rtrim( $lhs, $sep ) . $sep . ltrim( $rhs, $sep );
+	}
+
 	public static final function log( $message = '', ...$args ) {
 		if ( self::is_debugging() ) {
 			$caller = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS, 3 );
@@ -184,21 +233,6 @@ abstract class Abstract_Plugin {
 			}
 			$message = sprintf( $message, ...$args );
 			error_log( "$caller: $message" );
-		}
-	}
-
-	public static function str_join( $lhs, $rhs, $sep = '/' ) {
-		return rtrim( $lhs, $sep ) . $sep . ltrim( $rhs, $sep );
-	}
-
-	public static function get_field( $field, $post_id, $single = true, $type = 'post' ) {
-		if ( function_exists( 'get_field' ) ) {
-			// If ACF is installed, let it get the field.
-			return get_field( $field, $post_id );
-		}
-		else {
-			// If ACF not installed, let's do it ourselves.
-			return get_metadata( $type, $post_id, $field, true );
 		}
 	}
 

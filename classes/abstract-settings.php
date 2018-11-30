@@ -316,6 +316,9 @@ abstract class Abstract_Settings {
 			// Success notification
 			$this->notify_success();
 
+			// Do actions after saving.
+			do_action("$this->ns/settings/saved", $opt);
+
 		}
 
 	}

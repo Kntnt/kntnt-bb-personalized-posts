@@ -22,48 +22,11 @@ defined( 'WPINC' ) || die;
 // Define WP_DEBUG as TRUE and uncomment next line to debug this plugin.
 // define( 'KONZILO_BB_PERSONALIZER', true );
 
-require_once __DIR__ . '/classes/class-abstract-plugin.php';
-
-class Plugin extends Abstract_Plugin {
-
-	public static function is_acf_active() {
-		return is_plugin_active( 'advanced-custom-fields/acf.php' ) || is_plugin_active( 'advanced-custom-fields-pro/acf.php' );
+spl_autoload_register( function ( $class ) {
+	$ns_len = strlen( __NAMESPACE__ );
+	if ( 0 == substr_compare( $class, __NAMESPACE__, 0, $ns_len ) ) {
+		require_once __DIR__ . '/classes/' . strtr( strtolower( substr( $class, $ns_len + 1 ) ), '_', '-' ) . '.php';
 	}
-
-	static protected function dependencies() {
-		return [
-			'konzilo-personalizer/konzilo-personalizer.php' => __('Konzilo Personalizer', 'konzilo-bb-personalizer'),
-		];
-	}
-
-	protected function classes_to_load() {
-
-		return [
-			'public' => [
-				'init' => [
-					'BB_Extender',
-					'Sourcer',
-					'Scorer',
-				],
-			],
-			'ajax' => [
-				'admin_init' => [
-					'Sourcer',
-					'Scorer',
-				],
-			],
-			'admin' => [
-				'init' => [
-					'ACF_Extender',
-					'Settings',
-					'Sourcer',
-					'Scorer',
-				],
-			],
-		];
-
-	}
-
-}
+} );
 
 new Plugin();
