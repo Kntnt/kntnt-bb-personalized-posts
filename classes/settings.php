@@ -2,8 +2,6 @@
 
 namespace Konzilo\BB_Personalizer;
 
-require_once Plugin::plugin_dir( 'classes/class-abstract-settings.php' );
-
 class Settings extends Abstract_Settings {
 
 	private $taxonomies = [];
