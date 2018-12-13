@@ -48,32 +48,24 @@ class Sourcer {
 
 		Plugin::log();
 
-		/* TODO: Remove this if the bug
-		 * Calling FLBuilder::render_query() in an AJAX context don't add
-		 * imagesloaded with jQuery dependency which some modules, e.g.
-		 * Post Grid, requires. This is a workaround.
-		 */
-		wp_deregister_script( 'imagesloaded' );
-		wp_register_script( 'imagesloaded', includes_url( 'js/imagesloaded.min.js' ), [ 'jquery' ] );
-
 		// Store the profile; we don't need it now, but later.
 		$this->profile = $profile;
 
-		$args = [
-			'post__in' => [ Plugin::option( 'layout_post_id' ) ],
-			'post_type' => [ 'fl-theme-layout', 'fl-builder-template' ],
-			'ignore_sticky_posts' => true,
-			'posts_per_page' => - 1,
-			'orderby' => 'post__in',
-		];
+		// Get the layout's post id.
+		$id = Plugin::option( 'layout_post_id' );
 
+		// Get the layout's HTML
 		ob_start();
-		\FLBuilder::render_query( $args );
-		wp_styles()->do_items();
-		wp_scripts()->do_items(); // Causes a warning that synchronous XMLHttpRequest on the main thread is deprecated.
-		$out = ob_get_clean();
+		\FLBuilder::render_content_by_id( $id );
+		$html = ob_get_clean();
 
-		return $out;
+		// Get the layout's CSS and JS
+		\FLBuilderModel::set_post_id( $id );
+		$css = '<style type="text/css">'. \FLBuilder::render_css(false) .'</style>';
+		$js = '<script type="text/javascript">'. \FLBuilder::render_js(false) .'</script>';
+		\FLBuilderModel::reset_post_id();
+
+		return $html . $css . $js;
 
 	}
 
